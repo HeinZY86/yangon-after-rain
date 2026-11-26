@@ -192,7 +192,10 @@ function ellipsoid(m,x,y,z,rx,ry,rz,color,rows=6,cols=10){
 function makeRig(color,k){
  let torso=new Mesh(),leg=new Mesh(),arm=new Mesh(),shin=new Mesh(),forearm=new Mesh();
  const skin=['#bd8868','#a7765d','#c08d70','#996a55','#c59270'][k],hair='#302b29';
- ellipsoid(torso,0,1.19,0,.232,.326,.144,color,8,12);ellipsoid(torso,0,.99,-.005,.183,.14,.128,color);
+ ellipsoid(torso,0,1.245,-.005,.202,.26,.139,color,8,12);
+ ellipsoid(torso,0,1.358,-.008,.218,.106,.129,color,6,12);
+ ellipsoid(torso,0,1.018,.002,.167,.167,.126,color,6,10);
+ ellipsoid(torso,0,.90,-.008,.173,.112,.131,'#414c50',6,10);
  torso.box(0,.903,.003,.35,.043,.208,'#48433d');torso.box(0,.907,.109,.062,.035,.018,'#96928a');
  torso.tube([0,1.43,.008],[0,1.58,.008],.076,.083,skin);ellipsoid(torso,0,1.635,.018,.112,.151,.105,skin,8,12);
  ellipsoid(torso,0,1.722,-.004,.117,.088,.111,hair);ellipsoid(torso,0,1.671,-.047,.115,.099,.081,hair);
@@ -214,16 +217,15 @@ function makeRig(color,k){
   ellipsoid(torso,-.018,1.755,-.002,.121,.06,.102,'#302a27',5,9)
  }
  const pants=['#3a494d','#36434e','#625952','#3c454b','#4c5957'][k];
- leg.tube([0,-.01,0],[0,-.41,0],.105,.076,pants,0,9);
+ ellipsoid(leg,0,-.18,.009,.100,.234,.105,pants,6,10);
  ellipsoid(leg,0,-.39,.005,.077,.066,.075,pants,5,8);
- shin.tube([0,0,0],[0,-.375,-.045],.077,.061,pants,0,9);
+ ellipsoid(shin,0,-.165,-.023,.071,.202,.077,pants,6,10);
  ellipsoid(shin,0,-.356,.031,.081,.056,.145,'#3e4241',5,10);
  shin.box(0,-.428,.031,.153,.026,.241,'#8f8c7e');
  ellipsoid(arm,0,-.034,0,.091,.104,.093,color,5,8);
- arm.tube([0,0,0],[0,-.287,0],.081,.059,color,0,8);
- forearm.tube([0,0,0],[0,-.239,.013],.059,.038,skin,0,8);
+ ellipsoid(arm,0,-.117,0,.080,.134,.077,color,6,10);ellipsoid(arm,0,-.233,.002,.058,.084,.057,skin,5,8);
+ ellipsoid(forearm,0,-.106,.008,.055,.15,.053,skin,6,8);
  ellipsoid(forearm,0,-.276,.014,.045,.056,.035,skin,5,8);
- if(k===0){for(const side of [-1,1]){torso.tube([side*.105,1.42,.105],[side*.15,1.14,.10],.020,.017,'#554d43',0,6);ellipsoid(arm,0,-.15,.002,.085,.095,.078,'#596f67',5,8);ellipsoid(forearm,0,-.255,.042,.039,.052,.035,'#b68062',5,7)}ellipsoid(torso,0,1.74,-.042,.124,.093,.109,'#282b28',7,12);}
  return [torso,leg,arm,shin,forearm]
 }
 
@@ -346,15 +348,15 @@ function visible(x,z,r=4,max=120){let dx=x-view.x,dz=z-view.z,d=Math.hypot(dx,dz
 function drawHuman(p,model){
  if(!visible(p.x,p.z,2,70))return;
  const a=p.a||0,y=walkHeight(p.x,p.z)+(p.y||0),swing=p.walk||0,moving=p.moving,amp=moving?(p.running?.72:.48):0;
- const f=Math.sin(a),b=Math.cos(a),bob=moving?(1-Math.cos(2*swing))*(p.running?.019:.011):.005*Math.sin(clock*2.1);
+ const f=Math.sin(a),b=Math.cos(a),shift=moving?.026*Math.cos(swing):.006*Math.sin(clock*1.2),cx=p.x+b*shift,cz=p.z-f*shift,bob=moving?(1-Math.cos(2*swing))*(p.running?.019:.011):.005*Math.sin(clock*2.1);
  const handsClose=hyp(p,view)<38;
- const twist=moving?.065*Math.sin(swing):0;draw(model[0],p.x,y+bob,p.z,a+twist);
+ const twist=moving?.065*Math.sin(swing):0;draw(model[0],cx,y+bob,cz,a+twist,moving?(p.running?.067:.024):.008);
  for(const side of [-1,1]){
-  const phase=swing+(side>0?PI:0),leg=Math.sin(phase)*amp,arm=-leg*.73,knee=.07+Math.max(0,-Math.cos(phase))*amp*1.42,elbow=moving?(p.running?.59:.18):.08;
-  const x=p.x+b*side*.109,z=p.z-f*side*.109,H=y+.837+bob;
+  const phase=swing+(side>0?PI:0),leg=Math.sin(phase)*amp,arm=-leg*.73,knee=.085+Math.max(0,Math.cos(phase))*amp*1.34,elbow=moving?(p.running?.59:.18):.08;
+  const x=cx+b*side*.098,z=cz-f*side*.098,H=y+.837+bob;
   draw(model[1],x,H,z,a,leg);
   draw(model[3],x-f*.403*Math.sin(leg),H-.403*Math.cos(leg),z-b*.403*Math.sin(leg),a,leg+knee);
-  const X=p.x+b*side*.232,Z=p.z-f*side*.232,A=y+1.416+bob;
+  const X=cx+Math.cos(a+twist)*side*.213+f*.035,Z=cz-Math.sin(a+twist)*side*.213+b*.035,A=y+1.416+bob;
   draw(model[2],X,A,Z,a,arm);
   draw(model[4],X-f*.287*Math.sin(arm),A-.287*Math.cos(arm),Z-b*.287*Math.sin(arm),a,arm-(handsClose?elbow:0))
 
@@ -370,7 +372,7 @@ function pieces(ref){
  for(const n of streetPeople)if(visible(n.x,n.z,2,48))drawHuman(n,rigs[n.kind]||rigs[2]);
  for(let p of people)drawHuman(p,rigs[p.skin]);for(let p of guards)drawHuman(p,rigs[1]);
  let detailed=0;for(let p of peers)if(!p.car&&p.hp>0&&visible(p.x,p.z,2,75)){
- if(p.moving&&hyp(p,view)<17&&detailed<3){drawHuman(p,rigs[2]);detailed++}
+ if(hyp(p,view)<22&&detailed<3){drawHuman(p,rigs[2]);detailed++}
  else draw(remoteIdle,p.x,walkHeight(p.x,p.z)+(p.y||0),p.z,p.a)
  }if(mode==='play'&&!car&&myHP>0&&(!first||ref))drawHuman(player,rigs[0]);
  if(!ref&&mode==='play'&&car&&first)draw(dashMesh,car.x,carHeight(car),car.z,car.a,0,car.color);
@@ -642,7 +644,7 @@ function camera(dt){
  let target;if(mode==='home'){let hero=cars[0],a=.22+Math.sin(clock*.12)*.036,portrait=width/height<.85;view.x=hero.x-2.75+Math.sin(clock*.14)*.32;view.z=hero.z-(portrait?7.9:6.45);view.y=portrait?1.35:1.13;view.yaw=portrait?yawTo(view,hero):a;view.pitch=portrait?-.035:.04;view.fov=portrait?62:57;return}
  let p=actor(),h=car?carHeight(car):walkHeight(p.x,p.z)+(player.y||0),sy=Math.sin(lookYaw),cy=Math.cos(lookYaw);
  if(first){
-  if(car){let off=-.29;target={x:p.x+Math.cos(p.a)*off-Math.sin(p.a)*.40,y:h+(car.type===2?1.53:1.27),z:p.z-Math.sin(p.a)*off-Math.cos(p.a)*.40}}
+  if(car){let off=seat==='rider'?.32:-.29;target={x:p.x+Math.cos(p.a)*off-Math.sin(p.a)*.40,y:h+(car.type===2?1.53:1.27),z:p.z-Math.sin(p.a)*off-Math.cos(p.a)*.40}}
   else target={x:p.x,y:h+1.66+(player.moving?Math.sin(player.walk*2)*.022:0),z:p.z};
  }else{let len=car?6.7:3.25,shoulder=car?.12:.62,focus={x:p.x,y:h+(car?1.15:1.37),z:p.z};let end={x:p.x-sy*len+cy*shoulder,y:focus.y+(car?1.98:1.02)-Math.sin(lookPitch)*len*.78,z:p.z-cy*len-sy*shoulder};
   let f=1;for(let i=1;i<=18;i++){let t=i/18,q={x:mix(focus.x,end.x,t),z:mix(focus.z,end.z,t)},y=mix(focus.y,end.y,t);if(geoActive()?cityBlocked(q.x,q.z,.2,y):solids.some(b=>b.h>y-.25&&Math.abs(q.x-b.x)<b.w+.21&&Math.abs(q.z-b.z)<b.d+.21)){f=Math.max(.07,(i-1)/18);break}}target={x:mix(focus.x,end.x,f),y:mix(focus.y,end.y,f),z:mix(focus.z,end.z,f)}
@@ -727,7 +729,7 @@ function simulation(dt){lookIdle+=dt;damageCool=Math.max(0,damageCool-dt);shoveC
 window.addEventListener('mousemove',e=>{if(document.pointerLockElement===sceneCanvas&&!panel&&mode==='play'){lookYaw+=e.movementX*.0022;lookPitch=clamp(lookPitch-e.movementY*.002,-.85,.65);lookIdle=0}});
 sceneCanvas.addEventListener('dblclick',()=>{if(mode==='play'&&!panel&&sceneCanvas.requestPointerLock)Promise.resolve(sceneCanvas.requestPointerLock()).catch(()=>{})});
 function frame(now){if(!ready)return;streetJazz();iconsAndTags(now);if(geoActive()&&now>nextTiles){nextTiles=now+900;const p=actor();loadAround(p.x,p.z).catch(()=>notify('Loading the next streets…',2))}let raw=(now-(previous||now))/1000;previous=now;let dt=Math.min(.068,raw);
- if(!panel){clock+=dt;if(mode==='play'){elapsed+=dt;let steps=Math.max(1,Math.ceil(dt*54));for(let i=0;i<steps&&!panel;i++)simulation(dt/steps);msgTime-=dt;if(msgTime<0)$('msg').hidden=true;nextHud-=dt;if(nextHud<=0){hud();nextHud=.12}}
+ if(!panel){if(car&&seat==='rider'){const lastYaw=car.a;sampleRide(car,now);lookYaw+=wrap(car.a-lastYaw)}clock+=dt;if(mode==='play'){elapsed+=dt;let steps=Math.max(1,Math.ceil(dt*54));for(let i=0;i<steps&&!panel;i++)simulation(dt/steps);msgTime-=dt;if(msgTime<0)$('msg').hidden=true;nextHud-=dt;if(nextHud<=0){hud();nextHud=.12}}
   for(const n of streetPeople){const x=n.x,z=n.z,k=1-Math.exp(-14*dt);n.x=mix(x,n.tx,k);n.z=mix(z,n.tz,k);n.walk+=Math.hypot(n.x-x,n.z-z)*4}
   for(let p of peers){let k=1-Math.exp(-14*dt);p.x=mix(p.x,p.tx,k);p.z=mix(p.z,p.tz,k);if(p.moving)p.walk+=dt*8}camera(dt);render();marker();
   if(raw>.052&&raw<2&&frameNo>8)slowTime+=Math.min(raw,.4);else slowTime=Math.max(0,slowTime-.04);
@@ -889,6 +891,23 @@ function localWorld(){
   authority.join(localId,displayName());applyState(authority.snapshot(true));
 }
 function sendAction(m){if(authority)authority.update(localId,m,Date.now());else if(hostLink?.open)hostLink.send(m)}
+// A short presentation buffer bridges the 8 Hz host snapshots without sending more packets.
+function queueRide(c,x,z,a,t,reset){
+ let q=c.rideSamples||(c.rideSamples=[]),last=q[q.length-1];
+ if(reset||!last||t-last.t>700||Math.hypot(x-last.x,z-last.z)>30){
+   q.length=0;Object.assign(c,{x,z,a,v:0,vx:0,vz:0})
+ }
+ q.push({x,z,a,t});if(q.length>6)q.shift()
+}
+function sampleRide(c,now){
+ const q=c.rideSamples;if(!q?.length)return;
+ const time=now-160;while(q.length>2&&q[1].t<=time)q.shift();
+ if(q.length<2)return;
+ const left=q[0],right=q[1],span=Math.max(1,right.t-left.t);
+ const k=clamp((time-left.t)/span,0,1+Math.min(60/span,.5));
+ c.x=mix(left.x,right.x,k);c.z=mix(left.z,right.z,k);c.a=left.a+wrap(right.a-left.a)*k;
+ c.v=time>right.t+60?0:Math.hypot(right.x-left.x,right.z-left.z)*1000/span
+}
 function ownMove(){const a=actor();return {t:'move',x:a.x,z:a.z,a:wrap(a.a),y:player.y||0,moving:car?Math.abs(car.v)>1:player.moving,life:myLife}}
 function applyState(m){
   if(!session||m.t!=='state')return;if(Number.isFinite(m.day)&&m.day>=0&&m.day<DAY_MS){districtSample=m.day;districtAnchor=performance.now()}const mine=m.p.find(row=>row[0]===localId);if(!mine)return;
@@ -899,7 +918,7 @@ function applyState(m){
   const wasCar=car,oldSeat=seat;
   myHP=mine[7];parkedId=mine[8];seat=mine[9];car=cars.find(c=>c.id===parkedId)||null;
   if(myLife!==mine[10]){myLife=mine[10];Object.assign(player,{x:mine[2],z:mine[3],y:0,vy:0});camSnap=true;notify('Back on the street',1.4)}
-  for(const [id,x,z,a,hp,driver,rider] of m.v){const c=cars.find(v=>v.id===id);if(!c)continue;c.hp=hp;c.driver=driver;c.rider=rider;if(driver!==localId||oldSeat!=='driver'){Object.assign(c,{x,z,a,v:0,vx:0,vz:0})}}
+  for(const [id,x,z,a,hp,driver,rider] of m.v){const c=cars.find(v=>v.id===id);if(!c)continue;c.hp=hp;c.driver=driver;c.rider=rider;if(c===car&&seat==='rider'){queueRide(c,x,z,a,performance.now(),c!==wasCar||oldSeat!=='rider')}else{c.rideSamples=null;if(driver!==localId||oldSeat!=='driver')Object.assign(c,{x,z,a,v:0,vx:0,vz:0})}}
   if(wasCar!==car){camSnap=true;if(car){lookYaw=car.a;player.y=0;notify(seat==='rider'?'Passenger seat':'Driver seat',1.5)}else if(wasCar){let found=false;for(const angle of [Math.PI/2,-Math.PI/2,Math.PI,0]){let x=wasCar.x+Math.sin(wasCar.a+angle)*3,z=wasCar.z+Math.cos(wasCar.a+angle)*3;if(!solidAt(x,z,.34)){Object.assign(player,{x,z});found=true;break}}if(!found)Object.assign(player,spawnPoint())}}
   for(const [id,hp] of m.o){const p=props.find(v=>v.id===id);if(p)p.hp=hp}
   for(const [n,name,msg] of m.chat||[])if(n>lastChat){lastChat=n;let line=document.createElement('div');line.textContent=name+' · '+msg;$('chatFeed').append(line);while($('chatFeed').childNodes.length>4)$('chatFeed').firstChild.remove()}
