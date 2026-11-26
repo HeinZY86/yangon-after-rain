@@ -418,7 +418,7 @@ let b=basis(ref),w=ref?mirror.w:sceneCanvas.width,h=ref?mirror.h:sceneCanvas.hei
  let c=mode==='home'?cars[0]:car;if(c&&sun<.75)gl.uniform4f(u.headlamp,c.x,c.z,Math.sin(c.a),Math.cos(c.a));else gl.uniform4f(u.headlamp,10000,10000,0,1);
  pieces(ref);let dots=[];if(sun<.75&&geoActive())for(const o of props){if(!o.kind&&o.hp>0&&visible(o.x,o.z,1,85))dots.push(o.x+.97*Math.cos(o.a),5.23,o.z-.97*Math.sin(o.a),1,.76,.45,2)}if(sun<.75)for(let p of (geoActive()?[]:lights))if(visible(p[0],p[2],1,95))dots.push(...p,1,.71,.36,2.25);
  if(sun<.75)for(let v of cars)if(v.hp>0&&visible(v.x,v.z,2,80)&&!(car===v&&first&&!ref))for(let side of [-1,1]){for(let end of [-1,1]){let L=v.type===2?2.49:2.35;let x=v.x+side*.70*Math.cos(v.a)+end*L*Math.sin(v.a),z=v.z-side*.70*Math.sin(v.a)+end*L*Math.cos(v.a);dots.push(x,.69+carHeight(v),z,...(end===1?[1,.85,.63]:[1,.16,.07]),end===1?1.6:1.2)}}
- if(dots.length){gl.useProgram(pointProg.p);uniforms(pointProg,b);gl.uniform1f(pointProg.u.scale,h*b.lens[1]*.5);gl.bindBuffer(gl.ARRAY_BUFFER,pointBuffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(dots),gl.DYNAMIC_DRAW);attrs(pointProg,[['P',3,0],['C',3,3],['M',1,6]],7);gl.enable(gl.BLEND);gl.blendFunc(gl.ONE,gl.ONE);gl.depthMask(false);gl.drawArrays(gl.POINTS,0,dots.length/7);gl.depthMask(true);gl.disable(gl.BLEND)}
+ for(let v of cars)if(v.hp>0&&v.braking&&visible(v.x,v.z,2,55)&&!(car===v&&first&&!ref))for(let side of [-1,1]){let L=v.type===2?2.49:2.35,x=v.x+side*.70*Math.cos(v.a)-L*Math.sin(v.a),z=v.z-side*.70*Math.sin(v.a)-L*Math.cos(v.a);dots.push(x,.69+carHeight(v),z,1,.035,.02,3.2)}if(dots.length){gl.useProgram(pointProg.p);uniforms(pointProg,b);gl.uniform1f(pointProg.u.scale,h*b.lens[1]*.5);gl.bindBuffer(gl.ARRAY_BUFFER,pointBuffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(dots),gl.DYNAMIC_DRAW);attrs(pointProg,[['P',3,0],['C',3,3],['M',1,6]],7);gl.enable(gl.BLEND);gl.blendFunc(gl.ONE,gl.ONE);gl.depthMask(false);gl.drawArrays(gl.POINTS,0,dots.length/7);gl.depthMask(true);gl.disable(gl.BLEND)}
 }
 function render(){renderPass3D(false);frameNo++}
 function buildModels(){createCity();
@@ -569,11 +569,11 @@ function trafficStep(dt){
   if(!solidAt(c.x+dx,c.z+dz,1.0)){c.x+=dx;c.z+=dz}else{c.v=0;if(pursue)c.reportAge=0}c.vx=dx/dt;c.vz=dz/dt
  }
 }
-function nearCar(){if(session)return nearestRide();let best=null,d=4.25;for(let c of cars){let r=hyp(c,player);if(!claimed.has(c.id)&&r<d&&Math.abs(c.v)<10&&clearLine(c,player)){d=r;best=c}}return best}
+function nearCar(){if(session)return nearestRide();let best=null,d=4.25;for(let c of cars){let r=hyp(c,player);if(!c.police&&!claimed.has(c.id)&&r<d&&Math.abs(c.v)<10&&clearLine(c,player)){d=r;best=c}}return best}
 function board(c){if(session){if(claimed.has(c.id))return;car=c;c.v=c.vx=c.vz=0;lookYaw=c.a;camSnap=true;return}
  let firstTake=!c.owned,occupied=c.ai;c.ai=false;c.owned=true;car=c;c.v*=.25;c.vx=c.vz=0;lookYaw=c.a;lookPitch=-.06;lookIdle=3;camSnap=true;
  if(occupied){let old=pedestrian(c.x+Math.cos(c.a)*2.0,c.z-Math.sin(c.a)*2,2);old.flee=5;old.target=V(old.x+Math.cos(c.a)*5,old.z-Math.sin(c.a)*5);people.push(old)}
- if(firstTake){let witness=occupied||people.some(p=>sees(p,c,22,1.25))||guards.some(g=>sees(g,c,30));alarm(c,30,witness,witness?'The theft was reported.':'A car alarm is sounding.');if(!heat)notify('Vehicle taken · '+CAR_NAMES[c.type])}
+ if(firstTake){let witness=occupied||people.some(p=>sees(p,c,22,1.25))||guards.some(g=>sees(g,c,30));if(witness)notify('A witness noticed the vehicle. Leave the area before a report is made.',3.6);else notify('Vehicle taken · '+CAR_NAMES[c.type])}
  else notify(CAR_NAMES[c.type]);if(task()?.kind==='take'&&task().id===c.id)advance();
 }
 function interact(){
@@ -608,7 +608,7 @@ function movePlayer(dt){if(phonePortrait.matches)return;
  const old=c.a,forward=Math.sin(old)*c.vx+Math.cos(old)*c.vz;
  let lateral=Math.cos(old)*c.vx-Math.sin(old)*c.vz;
  const throttle=Number(U)-Number(D),speed=Math.abs(forward),reverse=throttle*forward<-.10;
- const stopping=hand||reverse||(U&&D), brake=[9.8,8.7,7.8,10,7,9][c.type];
+ const stopping=hand||reverse||(U&&D);c.braking=stopping;const brake=[9.8,8.7,7.8,10,7,9][c.type];
  const resistance=.38+.015*speed+.0026*speed*speed;
  const loss=(resistance+(stopping?brake*(hand?.92:1):0))*dt;
  let longitudinal=Math.sign(forward)*Math.max(0,speed-loss);
@@ -815,7 +815,7 @@ function boot(){try{buildModels();bakeNav();resetWorld(0);initGL();ready=true;ti
 class StreetWorld {
   constructor(spawn, vehicles, props, limits) {
     this.spawn=spawn;this.sunrise=Date.now();this.limits=limits;this.users=new Map();
-    this.vehicles=new Map(vehicles.map(c=>[c.id,{id:c.id,x:c.x,z:c.z,a:c.a,x0:c.x,z0:c.z,a0:c.a,hp:100,driver:'',rider:'',until:0}]));
+    this.vehicles=new Map(vehicles.map(c=>[c.id,{id:c.id,x:c.x,z:c.z,a:c.a,x0:c.x,z0:c.z,a0:c.a,hp:100,driver:'',rider:'',until:0,traffic:!!c.traffic,police:!!c.police,braking:false}]));
     this.props=new Map(props.map(o=>[o.id,{...o,hp:50,until:0}]));
     this.walkers=[];this.patrol=null;this.traffic=null;this.streetTime=0;this.changedCars=new Set();this.changedProps=new Set();this.chat=[];this.serial=0;
   }
@@ -839,9 +839,9 @@ class StreetWorld {
       if(p.seat==='rider')return;
       Object.assign(p,{x:m.x,z:m.z,a:m.a,y:Math.max(0,Math.min(2,m.y)),moving:!!m.moving});
       const c=this.vehicles.get(p.car);
-      if(c&&c.driver===id){Object.assign(c,{x:p.x,z:p.z,a:p.a});this.changedCars.add(c.id);const r=this.users.get(c.rider);if(r)Object.assign(r,{x:c.x,z:c.z,a:c.a})}
+      if(c&&c.driver===id){Object.assign(c,{x:p.x,z:p.z,a:p.a,braking:!!m.brake});this.changedCars.add(c.id);const r=this.users.get(c.rider);if(r)Object.assign(r,{x:c.x,z:c.z,a:c.a})}
     }else if(m.t==='seat'){
-      const c=this.vehicles.get(m.id);if(p.car||!near(c)||c.until)return;
+      const c=this.vehicles.get(m.id);if(p.car||!near(c)||c.until||c.police)return;
       const role=!c.driver?'driver':!c.rider?'rider':'';if(role){p.seat=role;p.car=c.id;c[role]=id;this.changedCars.add(c.id)}
     }else if(m.t==='exit'){this.exit(p)}
     else if(m.t==='chat'&&now-p.say>=600){
@@ -867,14 +867,14 @@ class StreetWorld {
       const start=pos(d,side);if(blocked(start.x,start.z))continue;
       this.walkers.push({...start,id:'walker'+i,kind:i===3?5:i%3+2,home:start,a:road.a,dir:1,road:road.a,d:0,moving:false,wait:0,flee:0})
     }
-    const auto=[...this.vehicles.values()].find(c=>Math.hypot(c.x-road.x,c.z-road.z)<18&&Math.hypot(c.x-road.x,c.z-road.z)>5);
-    if(auto)this.traffic={id:auto.id,a:road.a,dir:1,d:0,wait:0};
+    const auto=[...this.vehicles.values()].find(c=>c.police&&!c.driver&&!c.rider&&!c.until);
+    if(auto){const f=Math.sin(road.a),g=Math.cos(road.a);if(Math.hypot(auto.x-road.x,auto.z-road.z)>24){auto.x=road.x+f*8;auto.z=road.z+g*8;auto.x0=auto.x;auto.z0=auto.z;this.changedCars.add(auto.id)}auto.a=road.a;this.traffic={id:auto.id,a:road.a,dir:1,d:0,wait:0}}
   }
   incident(p,now){
     if(!this.walkers.some(n=>Math.hypot(n.x-p.x,n.z-p.z)<24))return;
     for(const n of this.walkers)if(Math.hypot(n.x-p.x,n.z-p.z)<18){n.flee=now+3400;n.wait=0;n.dir=(p.x-n.x)*Math.sin(n.road)+(p.z-n.z)*Math.cos(n.road)>0?-1:1}
     p.stars=Math.min(3,(p.stars||0)+1);p.escape=now+12000;
-    if(!this.patrol){const n=this.walkers[0];this.patrol={id:'footPatrol',kind:1,x:n.x,z:n.z,a:n.a,target:p.id,moving:false,contact:0}}
+    if(!this.patrol){const cop=this.vehicles.get('city0_1');if(cop){cop.target=p.id;cop.contact=0;this.patrol=cop}}
   }
   streetStep(now){
     if(!this.streetBlocked)return;if(this.localRoad&&now>(this.nextDistrict||0)){this.nextDistrict=now+2500;const host=this.users.values().next().value;if(host&&!this.patrol&&Math.hypot(host.x-this.streetOrigin.x,host.z-this.streetOrigin.z)>100){const road=this.localRoad();if(road)this.initStreet(road,this.streetBlocked)}}
@@ -885,7 +885,7 @@ class StreetWorld {
       if(Math.abs(n.d+delta)>(n.kind===5?6:8+n.kind)||this.streetBlocked(x,z)){n.dir*=-1;n.wait=now+(n.flee>now?125:700+Math.random()*2300);if(n.flee<=now)n.a+=Math.random()*.85-.425;continue}
       n.x=x;n.z=z;n.d+=delta;n.a=n.road+(n.dir<0?Math.PI:0);n.moving=true
     }
-    const t=this.traffic;if(t){const c=this.vehicles.get(t.id);
+    const t=this.traffic;if(t&&!(this.patrol&&this.patrol.id===t.id)){const c=this.vehicles.get(t.id);
       if(c.driver||c.rider||c.until)this.traffic=null;
       else if(now>t.wait){const v=t.dir*dt*3.2,x=c.x+v*Math.sin(t.a),z=c.z+v*Math.cos(t.a);
         if(Math.abs(t.d+v)>20||this.streetBlocked(x,z)){t.dir*=-1;t.wait=now+1800}
@@ -896,9 +896,9 @@ class StreetWorld {
     if(!cop)return;let p=this.users.get(cop.target);
     if(!p?.stars||p.until){p=[...this.users.values()].find(q=>q.stars&&!q.until);if(!p){this.patrol=null;return}cop.target=p.id;cop.contact=0}
     const dx=p.x-cop.x,dz=p.z-cop.z,dist=Math.hypot(dx,dz);cop.moving=false;
-    if(dist<22){p.escape=now+12000;cop.a=Math.atan2(dx,dz);const step=Math.min(dt*(2+p.stars*.32),dist);
+    if(dist<58){p.escape=now+12000;cop.a=Math.atan2(dx,dz);const step=Math.min(dt*(8+p.stars*1.2),dist);
       if(dist>1){const x=cop.x+step*dx/dist,z=cop.z+step*dz/dist;
-        if(!this.streetBlocked(x,cop.z)){cop.x=x;cop.moving=true}if(!this.streetBlocked(cop.x,z)){cop.z=z;cop.moving=true}}
+        if(!this.streetBlocked(x,cop.z)){cop.x=x;cop.moving=true}if(!this.streetBlocked(cop.x,z)){cop.z=z;cop.moving=true}this.changedCars.add(cop.id)}
     }
     cop.contact=dist<1.8?cop.contact+dt:0;
     if(cop.contact>=2.5){this.exit(p);Object.assign(p,this.spawn,{stars:0,life:p.life+1,hp:100,y:0,moving:false});this.patrol=null}
@@ -911,7 +911,7 @@ class StreetWorld {
   snapshot(all=false){
     const cars=all?this.vehicles.values():[...this.changedCars].map(id=>this.vehicles.get(id)),props=all?this.props.values():[...this.changedProps].map(id=>this.props.get(id));
     // Arrays avoid repeating field names in every 8 Hz snapshot.
-    return {t:'state',street:[...this.walkers,...(this.patrol?[this.patrol]:[])].map(n=>[n.id,+n.x.toFixed(2),+n.z.toFixed(2),+n.a.toFixed(2),n.kind,n.moving]),day:((Date.now()-this.sunrise+600000)%1800000+1800000)%1800000,p:[...this.users.values()].map(p=>[p.id,p.name,+p.x.toFixed(2),+p.z.toFixed(2),+p.a.toFixed(3),+p.y.toFixed(2),p.moving,p.hp,p.car,p.seat,p.life,p.stars||0,Math.max(0,Math.ceil(((p.escape||0)-this.streetTime)/1000))]),v:[...cars].map(c=>[c.id,+c.x.toFixed(2),+c.z.toFixed(2),+c.a.toFixed(3),c.hp,c.driver,c.rider]),o:[...props].map(o=>[o.id,o.hp]),chat:this.chat.slice(-3)};
+    return {t:'state',street:this.walkers.map(n=>[n.id,+n.x.toFixed(2),+n.z.toFixed(2),+n.a.toFixed(2),n.kind,n.moving]),day:((Date.now()-this.sunrise+600000)%1800000+1800000)%1800000,p:[...this.users.values()].map(p=>[p.id,p.name,+p.x.toFixed(2),+p.z.toFixed(2),+p.a.toFixed(3),+p.y.toFixed(2),p.moving,p.hp,p.car,p.seat,p.life,p.stars||0,Math.max(0,Math.ceil(((p.escape||0)-this.streetTime)/1000))]),v:[...cars].map(c=>[c.id,+c.x.toFixed(2),+c.z.toFixed(2),+c.a.toFixed(3),c.hp,c.driver,c.rider,!!c.braking]),o:[...props].map(o=>[o.id,o.hp]),chat:this.chat.slice(-3)};
   }
   flushed(){this.changedCars.clear();this.changedProps.clear()}
 }
@@ -983,7 +983,7 @@ function sampleRide(c,now){
  c.x=mix(left.x,right.x,k);c.z=mix(left.z,right.z,k);c.a=left.a+wrap(right.a-left.a)*k;
  c.v=time>right.t+60?0:Math.hypot(right.x-left.x,right.z-left.z)*1000/span
 }
-function ownMove(){const a=actor();return {t:'move',x:a.x,z:a.z,a:wrap(a.a),y:player.y||0,moving:car?Math.abs(car.v)>1:player.moving,life:myLife}}
+function ownMove(){const a=actor();return {t:'move',x:a.x,z:a.z,a:wrap(a.a),y:player.y||0,moving:car?Math.abs(car.v)>1:player.moving,brake:!!car?.braking,life:myLife}}
 function applyState(m){
   if(!session||m.t!=='state')return;if(Number.isFinite(m.day)&&m.day>=0&&m.day<DAY_MS){districtSample=m.day;districtAnchor=performance.now()}const mine=m.p.find(row=>row[0]===localId);if(!mine)return;
   streetStars=mine[11]||0;streetEscape=mine[12]||0;
@@ -993,7 +993,7 @@ function applyState(m){
   const wasCar=car,oldSeat=seat;
   myHP=mine[7];parkedId=mine[8];seat=mine[9];car=cars.find(c=>c.id===parkedId)||null;
   if(myLife!==mine[10]){myLife=mine[10];Object.assign(player,{x:mine[2],z:mine[3],y:0,vy:0});camSnap=true;notify('Back on the street',1.4)}
-  for(const [id,x,z,a,hp,driver,rider] of m.v){const c=cars.find(v=>v.id===id);if(!c)continue;c.hp=hp;c.driver=driver;c.rider=rider;if(c===car&&seat==='rider'){queueRide(c,x,z,a,performance.now(),c!==wasCar||oldSeat!=='rider')}else{c.rideSamples=null;if(driver!==localId||oldSeat!=='driver')Object.assign(c,{x,z,a,v:0,vx:0,vz:0})}}
+  for(const [id,x,z,a,hp,driver,rider,braking] of m.v){const c=cars.find(v=>v.id===id);if(!c)continue;c.hp=hp;c.driver=driver;c.rider=rider;c.braking=braking;if(c===car&&seat==='rider'){queueRide(c,x,z,a,performance.now(),c!==wasCar||oldSeat!=='rider')}else{c.rideSamples=null;if(driver!==localId||oldSeat!=='driver')Object.assign(c,{x,z,a,v:0,vx:0,vz:0})}}
   if(wasCar!==car){resetKeys();document.body.classList.toggle('driving',!!car);document.querySelector('[data-tap="KeyE"]').textContent=car?'Exit':'Ride';document.querySelector('[data-key="Space"]').textContent=car?'Brake':'Jump';camSnap=true;if(car){lookYaw=car.a;player.y=0;notify(seat==='rider'?'Passenger seat':'Driver seat',1.5)}else if(wasCar){let found=false;for(const angle of [Math.PI/2,-Math.PI/2,Math.PI,0]){let x=wasCar.x+Math.sin(wasCar.a+angle)*3,z=wasCar.z+Math.cos(wasCar.a+angle)*3;if(!solidAt(x,z,.34)){Object.assign(player,{x,z});found=true;break}}if(!found)Object.assign(player,spawnPoint())}}
   for(const [id,hp] of m.o){const p=props.find(v=>v.id===id);if(p)p.hp=hp}
   for(const [n,name,msg] of m.chat||[])if(n>lastChat){lastChat=n;let line=document.createElement('div');line.textContent=name+' · '+msg;$('chatFeed').append(line);while($('chatFeed').childNodes.length>4)$('chatFeed').firstChild.remove()}
@@ -1099,7 +1099,7 @@ function sandboxAct(){
   if(car){if(seat==='driver'&&Math.hypot(car.vx,car.vz)>3){notify('Hold brake to stop, then exit.');return}if(seat==='driver'){car.v=car.vx=car.vz=0}sendAction({t:'exit'});return}
   const c=nearestRide();if(c){sendAction({t:'seat',id:c.id})}else notify('Stand beside a car with a free seat.')
 }
-function nearestRide(){let best=null,dist=4.25;for(const c of cars){const d=hyp(c,player);if(c.hp>0&&(!c.driver||!c.rider)&&d<dist&&clearLine(player,c)){best=c;dist=d}}return best}
+function nearestRide(){let best=null,dist=4.25;for(const c of cars){const d=hyp(c,player);if(c.hp>0&&!c.police&&(!c.driver||!c.rider)&&d<dist&&clearLine(player,c)){best=c;dist=d}}return best}
 let nextContactScan=0,nextSwing=0,swingEnd=0;
 function strike(impact=false){if(!session||!myHP||seat==='rider'||performance.now()<nextSwing)return;const a=actor(),reach=impact?5.3:3.3;
   const candidates=[...peers.filter(p=>!p.car),...streetPeople.filter(p=>p.kind!==1),...props,...cars.filter(c=>c!==car)].filter(o=>o.hp>0&&hyp(a,o)<reach&&Math.abs(wrap(yawTo(a,o)-a.a))<(impact?1.1:2.2)).sort((a1,b)=>hyp(a,a1)-hyp(a,b));
@@ -1224,7 +1224,7 @@ function prepareFleet(){
   region.stops.forEach((s,i)=>{
     for(let k=0;k<3;k++){
       const offset=(k-1)*8,side=Math.min(2,s.w*.22),x=s.x+Math.sin(s.a)*offset+Math.cos(s.a)*side,z=s.z+Math.cos(s.a)*offset-Math.sin(s.a)*side;
-      cars.push(newCar('city'+i+'_'+k,(k===0?4:k===2?5:i%3),x,z,s.a,['#747e79','#b3b6ae','#95796b'][k]));
+      const patrolCar=newCar('city'+i+'_'+k,(i===0&&k===1?3:k===0?4:k===2?5:i%3),x,z,s.a,i===0&&k===1?'#435d71':['#747e79','#b3b6ae','#95796b'][k],i===0&&k===1);if(i===0&&k===1){patrolCar.police=true;patrolCar.patrol=true;const f=Math.sin(s.a),g=Math.cos(s.a);patrolCar.loop=[V(x-24*f,z-24*g),V(x+24*f,z+24*g)];patrolCar.ri=1;patrolCar.pace=6}cars.push(patrolCar);
     }
   });
 }
