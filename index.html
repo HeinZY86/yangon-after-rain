@@ -572,7 +572,7 @@ function updateTask(dt){
  progress=ready?progress+dt:0;if(progress>=(t.kind==='broadcast'?4:.55))advance()
 }
 function movePlayer(dt){
- const on=k=>keys.has(k),U=on('KeyW')||on('ArrowUp'),D=on('KeyS')||on('ArrowDown'),L=on('KeyA'),Rt=on('KeyD'),turn=+on('ArrowRight')-+on('ArrowLeft');
+ const on=k=>keys.has(k)||padHeld.has(k),U=on('KeyW')||on('ArrowUp'),D=on('KeyS')||on('ArrowDown'),L=on('KeyA'),Rt=on('KeyD'),turn=+on('ArrowRight')-+on('ArrowLeft');
  if(!car){lookYaw+=turn*1.85*dt;if(on('KeyZ'))lookPitch=clamp(lookPitch+.8*dt,-.85,.65);if(on('KeyX'))lookPitch=clamp(lookPitch-.8*dt,-.85,.65);
   let f=+U-+D-(Math.abs(stickY)>.12?stickY:0),r=+Rt-+L+(Math.abs(stickX)>.12?stickX:0),n=Math.max(1,Math.hypot(f,r));player.running=on('ShiftLeft')||on('ShiftRight');const targetSpeed=(f||r)?(player.running?5.9:2.25):0;player.paceNow=mix(player.paceNow||0,targetSpeed,1-Math.exp(-dt*8));let sp=player.paceNow,dx=(Math.sin(lookYaw)*f+Math.cos(lookYaw)*r)/n*dt*sp,dz=(Math.cos(lookYaw)*f-Math.sin(lookYaw)*r)/n*dt*sp;
   let allowed=(x,z)=>!cars.some(c=>{let X=x-c.x,Z=z-c.z;return c.hp>0&&Math.abs(X*Math.cos(c.a)-Z*Math.sin(c.a))<1.17&&Math.abs(X*Math.sin(c.a)+Z*Math.cos(c.a))<2.45});
@@ -624,7 +624,7 @@ function notify(s,t=2.6){$('msg').textContent=s;$('msg').hidden=false;msgTime=t}
 function tone(hz,len,delay=0){if(!sound||!audioCtx)return;let t=audioCtx.currentTime+delay,o=audioCtx.createOscillator(),g=audioCtx.createGain();o.frequency.value=hz;g.gain.setValueAtTime(.001,t);g.gain.exponentialRampToValueAtTime(.10,t+.02);g.gain.exponentialRampToValueAtTime(.001,t+len);o.connect(g);g.connect(master);o.start(t);o.stop(t+len+.03)}
 // Original 82 BPM loop. Look ahead by one beat, with no queued notes during tab suspension.
 const terraceChords=[[50,60,65,69],[55,59,65,69],[48,59,64,67],[53,60,64,69]];
-let terraceRadio=false,jazzStep=0,jazzNext=0;
+let terraceRadio=true,jazzStep=0,jazzNext=0;
 function streetJazz(){
  if(!sound||!audioCtx||audioCtx.state!=='running')return;
  const volume=typeof options==='object'?options.music:.2;
@@ -660,7 +660,7 @@ function camera(dt){
 function switchView(){first=!first;try{localStorage.setItem('yangon-after-rain-view',first?'1':'0')}catch{}lookIdle=3;camSnap=true;hud();notify(first?(car?'Cockpit view':'First-person view'):'Third-person view',1.3)}
 function mapDraw(canvas,full){
  if(!canvas)return;if(geoActive())return cityMap(canvas,full);let bounds=canvas.getBoundingClientRect(),w=bounds.width,h=bounds.height;if(w<2||h<2)return;let k=Math.min(devicePixelRatio||1,1.7);if(canvas.width!==Math.round(w*k)||canvas.height!==Math.round(h*k)){canvas.width=Math.round(w*k);canvas.height=Math.round(h*k)}
- let g=canvas.getContext('2d');g.setTransform(k,0,0,k,0,0);g.fillStyle='#233940';g.fillRect(0,0,w,h);let p=actor(),scale=full?Math.min(w,h)/(HI-LO+27):w/93,ox=full?(LO+HI)/2:p.x,oz=full?(LO+HI)/2:p.z;
+ let g=canvas.getContext('2d');g.setTransform(k,0,0,k,0,0);g.fillStyle='#233940';g.fillRect(0,0,w,h);let p=actor(),scale=full?mapZoom*Math.min(w,h)/(HI-LO+27):w/93,ox=full?mapDX+(LO+HI)/2:p.x,oz=full?mapDZ+(LO+HI)/2:p.z;if(full)mapScale=scale;
  g.save();g.translate(w/2,h/2);g.scale(scale,-scale);g.translate(-ox,-oz);g.fillStyle='#858581';g.fillRect(LO-7,LO-7,HI-LO+14,HI-LO+14);
  for(let b of blocks){g.fillStyle=b.park?'#526c5c':b.yard?'#716f62':'#34434a';g.fillRect(b.x+R,b.z+R,S-2*R,S-2*R)}
  g.fillStyle='#435056';for(let b of solids)g.fillRect(b.x-b.w,b.z-b.d,b.w*2,b.d*2);
@@ -688,18 +688,32 @@ function start(asFree,retry=false){
  money=story.slice(0,chapter).reduce((n,j)=>n+j.pay,0);stage=0;resetWorld(free?0:chapter);panel='';$('home').hidden=true;$('hud').hidden=false;$('modal').hidden=true;$('pauseBtn').hidden=false;$('cameraBtn').hidden=false;document.body.classList.add('playing');document.activeElement?.blur();notify(free?'Free roam · explore the district.':'WASD to move. Drag to look. E to interact.',4);camera(0);hud()
 }
 const button=(id,s,primary=false)=>'<button class="button '+(primary?'primary':'')+'" id="'+id+'">'+s+'</button>';
+let mapZoom=1,mapDX=0,mapDZ=0,mapScale=1;
+function bindMap(){
+ const c=$('bigmap'),points=new Map();c.style.touchAction='none';
+ const redraw=()=>mapDraw(c,true);
+ const zoom=k=>{mapZoom=clamp(mapZoom*k,1,geoActive()?256:12);redraw()};
+ $('nearMap').onclick=()=>zoom(2);$('farMap').onclick=()=>zoom(.5);
+ $('centerMap').onclick=()=>{const p=actor(),bounds=geoActive()?region.bounds:[LO,LO,HI,HI];mapDX=p.x-(bounds[0]+bounds[2])/2;mapDZ=p.z-(bounds[1]+bounds[3])/2;mapZoom=geoActive()?64:2;redraw()};
+ c.onwheel=e=>{e.preventDefault();zoom(e.deltaY<0?1.3:1/1.3)};
+ c.onpointerdown=e=>{c.setPointerCapture(e.pointerId);points.set(e.pointerId,[e.clientX,e.clientY])};
+ c.onpointermove=e=>{const old=points.get(e.pointerId);if(!old)return;const other=[...points].find(([id])=>id!==e.pointerId)?.[1];
+ if(other){const d=Math.hypot(old[0]-other[0],old[1]-other[1]);if(d>5)zoom(Math.hypot(e.clientX-other[0],e.clientY-other[1])/d)}
+ else{mapDX-=(e.clientX-old[0])/mapScale;mapDZ+=(e.clientY-old[1])/mapScale;redraw()}points.set(e.pointerId,[e.clientX,e.clientY])};
+ c.onpointerup=c.onpointercancel=c.onlostpointercapture=e=>points.delete(e.pointerId);redraw()
+}
 function openMenu(name){
  if(document.pointerLockElement)document.exitPointerLock();if(!session)return;
  resetKeys();closeChat();panel=name;pausedDraw=false;$('modal').hidden=false;$('mtag').textContent='URBAN LIFE MYANMAR';
  const street=geoActive();let html,title;
- if(name==='map'){title=street?'Yangon city map':'Downtown street map';html='<canvas id="bigmap" aria-label="Yangon streets and player position"></canvas>';
+ if(name==='map'){title=street?'Yangon city map':'Downtown street map';html='<canvas id="bigmap" aria-label="Yangon streets and player position"></canvas>'+button('nearMap','Zoom +')+button('farMap','Zoom −')+button('centerMap','My location');
  if(street)html+='<div class="travel"><label for="travelStop">Travel to</label><select id="travelStop">'+region.stops.map((s,i)=>'<option value="'+i+'">'+s.name+'</option>').join('')+'</select>'+button('travelGo','Go')+'</div>';
  html+=button('resume','Back to the street',true)}
  else if(name==='help'){title='Controls';html='<p>WASD moves or drives. Drag to look. Shift sprints. E takes a seat or exits. Space jumps on foot and brakes in a car. F swings, V changes view, T opens chat, and M opens your map.</p>'+button('resume','Resume',true)}
  else{title='On the street';html='<div class="row">'+button('resume','Resume',true)+button('mapMenu','City map')+button('guide','Controls')+button('prefs','Settings')+button('titleBtn','Leave world')+'</div>'}
  $('mtitle').textContent=title;$('mbody').innerHTML=html;
  if($('travelGo'))$('travelGo').onclick=()=>{if(car){notify('Leave your vehicle to travel.');return}travelCity(Number($('travelStop').value))};
- if($('resume'))$('resume').onclick=closeMenu;if($('mapMenu'))$('mapMenu').onclick=()=>openMenu('map');if($('guide'))$('guide').onclick=()=>openMenu('help');if($('prefs'))$('prefs').onclick=prefs;if($('titleBtn'))$('titleBtn').onclick=titleScreen;if(name==='map')mapDraw($('bigmap'),true)
+ if($('resume'))$('resume').onclick=closeMenu;if($('mapMenu'))$('mapMenu').onclick=()=>openMenu('map');if($('guide'))$('guide').onclick=()=>openMenu('help');if($('prefs'))$('prefs').onclick=prefs;if($('titleBtn'))$('titleBtn').onclick=titleScreen;if(name==='map')bindMap()
 }
 function prefs(){
  panel='settings';resetKeys();$('modal').hidden=false;$('mtag').textContent='YANGON / SETTINGS';$('mtitle').textContent='Settings';
@@ -734,7 +748,19 @@ window.addEventListener('resize',()=>{resize();pausedDraw=false});window.addEven
 function simulation(dt){lookIdle+=dt;damageCool=Math.max(0,damageCool-dt);shoveCool=Math.max(0,shoveCool-dt);if(session){updateSandbox(dt);return}trafficStep(dt);movePlayer(dt);if(!panel)updateAgents(dt);if(!panel)updateTask(dt)}
 window.addEventListener('mousemove',e=>{if(document.pointerLockElement===sceneCanvas&&!panel&&mode==='play'){lookYaw+=e.movementX*.0022;lookPitch=clamp(lookPitch-e.movementY*.002,-.85,.65);lookIdle=0}});
 sceneCanvas.addEventListener('dblclick',()=>{if(mode==='play'&&!panel&&sceneCanvas.requestPointerLock)Promise.resolve(sceneCanvas.requestPointerLock()).catch(()=>{})});
-function frame(now){if(!ready)return;streetJazz();iconsAndTags(now);if(geoActive()&&now>nextTiles){nextTiles=now+900;const p=actor();loadAround(p.x,p.z).catch(()=>notify('Loading the next streets…',2))}let raw=(now-(previous||now))/1000;previous=now;let dt=Math.min(.068,raw);
+const padHeld=new Set();let padPrevious=[],padLast=0;
+function readController(now){
+ padHeld.clear();let pad;try{pad=Array.from(navigator.getGamepads?.()||[]).find(p=>p?.mapping==='standard')}catch{}if(!pad){padPrevious=[];return}
+ const down=i=>!!pad.buttons[i]?.pressed,edge=i=>down(i)&&!padPrevious[i],axis=i=>Math.abs(pad.axes[i]||0)>.17?pad.axes[i]:0,dt=Math.min(.06,(now-padLast)/1000);padLast=now;
+ if(mode==='play'&&!panel&&!chatOpen){const x=axis(0),y=axis(1);
+ if(x<0)padHeld.add('KeyA');if(x>0)padHeld.add('KeyD');
+ if(car?down(7):y<0)padHeld.add('KeyW');if(car?down(6):y>0)padHeld.add('KeyS');if(car&&down(0))padHeld.add('Space');if(down(10))padHeld.add('ShiftLeft');
+ if(axis(2)||axis(3)){lookYaw+=axis(2)*2.5*dt;lookPitch=clamp(lookPitch-axis(3)*1.5*dt,-.85,.65);lookIdle=0}
+ for(const [i,key] of [[0,'Space'],[1,'KeyF'],[2,'KeyE'],[3,'KeyV'],[8,'KeyM'],[9,'KeyP']])if(edge(i))action(key)
+ }else if(panel){if(edge(1)||edge(9))closeMenu();else if(panel==='map'){if(edge(4))$('farMap').click();if(edge(5))$('nearMap').click();if(edge(0))$('centerMap').click()}}
+ padPrevious=pad.buttons.map(b=>b.pressed)
+}
+function frame(now){if(!ready)return;readController(now);streetJazz();iconsAndTags(now);if(geoActive()&&now>nextTiles){nextTiles=now+900;const p=actor();loadAround(p.x,p.z).catch(()=>notify('Loading the next streets…',2))}let raw=(now-(previous||now))/1000;previous=now;let dt=Math.min(.068,raw);
  if(!panel){if(car&&seat==='rider'){const lastYaw=car.a;sampleRide(car,now);lookYaw+=wrap(car.a-lastYaw)}clock+=dt;if(mode==='play'){elapsed+=dt;let steps=Math.max(1,Math.ceil(dt*54));for(let i=0;i<steps&&!panel;i++)simulation(dt/steps);msgTime-=dt;if(msgTime<0)$('msg').hidden=true;nextHud-=dt;if(nextHud<=0){hud();nextHud=.12}}
   for(const n of streetPeople){const x=n.x,z=n.z,k=1-Math.exp(-14*dt);n.x=mix(x,n.tx,k);n.z=mix(z,n.tz,k);n.walk+=Math.hypot(n.x-x,n.z-z)*4}
   for(let p of peers){let k=1-Math.exp(-14*dt);p.x=mix(p.x,p.tx,k);p.z=mix(p.z,p.tz,k);if(p.moving)p.walk+=dt*8}camera(dt);render();marker();
@@ -815,6 +841,7 @@ class StreetWorld {
     if(!this.streetBlocked)return;if(this.localRoad&&now>(this.nextDistrict||0)){this.nextDistrict=now+2500;const host=this.users.values().next().value;if(host&&!this.patrol&&Math.hypot(host.x-this.streetOrigin.x,host.z-this.streetOrigin.z)>100){const road=this.localRoad();if(road)this.initStreet(road,this.streetBlocked)}}
     const dt=Math.max(0,Math.min(.25,(now-this.streetTime)/1000));this.streetTime=now;
     for(const n of this.walkers){n.moving=false;if(n.wait>now)continue;
+      if(now>(n.observe||0)){n.observe=now+650;for(const c of this.vehicles.values())if(c.driver&&Math.hypot(c.x-n.x,c.z-n.z)<4){n.flee=now+1700;n.dir=(c.x-n.x)*Math.sin(n.road)+(c.z-n.z)*Math.cos(n.road)>0?-1:1;break}}
       const delta=dt*(n.flee>now?3.1:1.05)*n.dir,x=n.x+Math.sin(n.road)*delta,z=n.z+Math.cos(n.road)*delta;
       if(Math.abs(n.d+delta)>9||this.streetBlocked(x,z)){n.dir*=-1;n.wait=now+(n.flee>now?125:1600);continue}
       n.x=x;n.z=z;n.d+=delta;n.a=n.road+(n.dir<0?Math.PI:0);n.moving=true
@@ -981,7 +1008,9 @@ function acceptConnection(c){
   c.on('data',m=>{if(world!==authority)return;if(m?.t==='hello'){admit();return}if(!admitted)return;const now=Date.now();c.lastSeen=now;if(now-last>=1000){last=now;messages=0}if(++messages>45)return;world.update(c.peer,m,now)});
   const gone=()=>{if(admitted&&clients.get(c.peer)===c){clients.delete(c.peer);world.leave(c.peer)}};c.on('close',gone);c.on('error',gone);
 }
+let audioStarted=false;
 async function enterWorld(kind,target=''){
+ if(!audioStarted&&navigator.userActivation?.isActive){audioStarted=true;if(!sound)toggleSound()}
   if(connecting)return;leaveRoom();connecting=true;const epoch=linkSerial;
   textNotice(kind==='solo'?'Opening the streets…':'Connecting to the world…');
   try{
@@ -1164,9 +1193,9 @@ function cityMap(canvas,full) {
   const rect=canvas.getBoundingClientRect(),w=rect.width,h=rect.height;if(w<2||h<2)return;
   const ratio=Math.min(devicePixelRatio||1,1.5);
   if(canvas.width!==Math.round(w*ratio)||canvas.height!==Math.round(h*ratio)){canvas.width=Math.round(w*ratio);canvas.height=Math.round(h*ratio)}
-  const g=canvas.getContext('2d'),p=actor(),scale=full?Math.min(w/(region.bounds[2]-region.bounds[0]),h/(region.bounds[3]-region.bounds[1]))*.96:w/150;
-  const ox=full?(region.bounds[0]+region.bounds[2])/2:p.x,oz=full?(region.bounds[1]+region.bounds[3])/2:p.z;
-  const X=x=>(x-ox)*scale+w/2,Z=z=>(oz-z)*scale+h/2;
+  const g=canvas.getContext('2d'),p=actor(),scale=full?mapZoom*Math.min(w/(region.bounds[2]-region.bounds[0]),h/(region.bounds[3]-region.bounds[1]))*.96:w/150;
+  const ox=full?mapDX+(region.bounds[0]+region.bounds[2])/2:p.x,oz=full?mapDZ+(region.bounds[1]+region.bounds[3])/2:p.z;
+  if(full)mapScale=scale;const X=x=>(x-ox)*scale+w/2,Z=z=>(oz-z)*scale+h/2;
   function path(pts){g.beginPath();pts.forEach(([x,z],i)=>i?g.lineTo(X(x),Z(z)):g.moveTo(X(x),Z(z)))}
   g.setTransform(ratio,0,0,ratio,0,0);g.fillStyle='#193033';g.fillRect(0,0,w,h);
   if(full){g.lineWidth=.65;g.strokeStyle='#73938b';for(const road of cityRoads||[]){path(road);g.stroke()}
