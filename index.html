@@ -863,12 +863,13 @@ function acceptConnection(c){
   if(!authority||c.metadata?.v!==2||clients.size>=24){c.on('open',()=>{c.send({t:'reject',why:'Unavailable world or game version.'});setTimeout(()=>c.close(),250)});return}
   const world=authority;let admitted=false,messages=0,last=Date.now();c.lastSeen=last;
   const admit=()=>{
-    if(admitted)return;
+    if(admitted){if(world===authority&&c.open)c.send({t:'welcome',geo:geoActive(),initial:world.snapshot(true)});return}
+    if(authority===world&&clients.has(c.peer)&&clients.get(c.peer)!==c){const previous=clients.get(c.peer);clients.delete(c.peer);world.leave(c.peer);previous.close()}
     if(authority!==world||!world.join(c.peer,c.metadata?.name)){c.send({t:'reject',why:'World full · 20 / 20 players'});setTimeout(()=>c.close(),350);return}
     admitted=true;c.lastSeen=Date.now();clients.set(c.peer,c);
     c.send({t:'welcome',geo:geoActive(),initial:world.snapshot(true)});
   };if(c.open)admit();else c.once('open',admit);
-  c.on('data',m=>{if(!admitted||world!==authority)return;const now=Date.now();c.lastSeen=now;if(now-last>=1000){last=now;messages=0}if(++messages>45)return;world.update(c.peer,m,now)});
+  c.on('data',m=>{if(world!==authority)return;if(m?.t==='hello'){admit();return}if(!admitted)return;const now=Date.now();c.lastSeen=now;if(now-last>=1000){last=now;messages=0}if(++messages>45)return;world.update(c.peer,m,now)});
   const gone=()=>{if(admitted&&clients.get(c.peer)===c){clients.delete(c.peer);world.leave(c.peer)}};c.on('close',gone);c.on('error',gone);
 }
 async function enterWorld(kind,target=''){
@@ -883,13 +884,22 @@ async function enterWorld(kind,target=''){
       if(epoch!==linkSerial)return;localId=transport.id;
       if(kind==='host'){worldId=localId;const geo=await prepareMap();if(epoch!==linkSerial)return;launchWorld(geo,true);localWorld();transport.on('connection',acceptConnection)}
       else{
-        worldId=target;const c=transport.connect(target,{reliable:true,serialization:'json',metadata:{v:2,name:displayName()}});hostLink=c;
-        let latest=null,received=false;
-        const hello=await timed(new Promise((resolve,reject)=>{
-          c.on('data',m=>{if(!m||epoch!==linkSerial)return;hostLastSeen=Date.now();if(m.t==='reject')reject(Error(m.why));else if(m.t==='welcome'){received=true;resolve(m)}else if(m.t==='state'){if(session)applyState(m);else latest=m}});
-          c.on('close',()=>{if(epoch!==linkSerial)return;if(received)failWorld('The host left. Enter World to start another.');else reject(Error('The host is unavailable.'))});
-          c.on('error',()=>{if(epoch!==linkSerial)return;if(received)failWorld('Connection to host lost.');else reject(Error('Could not reach the host.'))});
-        }),19000,'Could not reach the host. A restrictive network may require TURN.');
+        worldId=target;let latest=null,hello=null;
+        for(let attempt=0;attempt<2&&!hello;attempt++){
+          if(epoch!==linkSerial)return;
+          const c=transport.connect(target,{reliable:true,serialization:'json',metadata:{v:2,name:displayName()}});hostLink=c;
+          let accepted=false,helloTimer=0;
+          try{
+            hello=await timed(new Promise((resolve,reject)=>{
+              const greet=()=>{if(c.open&&!accepted)c.send({t:'hello'})};
+              c.on('open',greet);helloTimer=setInterval(greet,800);
+              c.on('data',m=>{if(!m||epoch!==linkSerial||hostLink!==c)return;hostLastSeen=Date.now();if(m.t==='reject')reject(Error(m.why));else if(m.t==='welcome'){accepted=true;resolve(m)}else if(m.t==='state'){if(session)applyState(m);else latest=m}});
+              const lost=()=>{if(epoch!==linkSerial||hostLink!==c)return;if(accepted)failWorld('The host left. Enter World to start another.');else reject(Error('Could not reach the host.'))};
+              c.on('close',lost);c.on('error',lost);
+            }),14500,'Could not reach the host. This network may require TURN.');
+          }catch(e){hostLink=null;c.close();if(attempt||/full|version/i.test(e.message))throw e;textNotice('Retrying the direct connection…')}
+          finally{clearInterval(helloTimer)}
+        }
         if(hello.geo)await prepareMap(true);if(epoch!==linkSerial)return;launchWorld(hello.geo,true);applyState(hello.initial);
         const start=hello.initial.p.find(r=>r[0]===localId);if(start)Object.assign(player,{x:start[2],z:start[3]});if(latest)applyState(latest);
       }

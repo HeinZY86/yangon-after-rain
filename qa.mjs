@@ -9,7 +9,7 @@ const html=await fs.readFile('index.html'),sdk=await fs.readFile(require.resolve
 const signal=PeerServer({port:9000,path:'/qa'});
 const srv=http.createServer((req,res)=>{if(req.url==='/sdk'){res.setHeader('Content-Type','text/javascript');res.end(sdk)}else if(req.url.startsWith('/city/')){res.writeHead(404);res.end()}else if(req.url==='/peers'){res.setHeader('Content-Type','text/html');res.end('<script src="/sdk"></script>')}else{res.setHeader('Content-Type','text/html');res.end(html)}});
 await new Promise(r=>srv.listen(8382,'127.0.0.1',r));
-const browser=await chromium.launch({channel:'chrome',headless:true,args:['--enable-unsafe-swiftshader','--use-angle=swiftshader','--autoplay-policy=no-user-gesture-required','--disable-background-timer-throttling','--disable-renderer-backgrounding','--disable-backgrounding-occluded-windows']});
+const browser=await chromium.launch({channel:'chrome',headless:true,args:['--enable-unsafe-swiftshader','--allow-loopback-in-peer-connection','--disable-features=WebRtcHideLocalIpsWithMdns','--use-angle=swiftshader','--autoplay-policy=no-user-gesture-required','--disable-background-timer-throttling','--disable-renderer-backgrounding','--disable-backgrounding-occluded-windows']});
 const errors=[];
 signal.on('connection',()=>console.log('local signal connection'));
 const context=await browser.newContext({viewport:{width:900,height:620},permissions:['clipboard-read','clipboard-write']});
