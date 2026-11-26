@@ -7,9 +7,12 @@
 @media(max-height:490px) and (orientation:landscape){.topline{top:4%}.copy{top:50%;transform:translateY(-40%)}h1{font-size:58px;margin:8px 0}.copy p{margin:8px 0}.homefoot{display:none}.task{top:40px}.mapcard{width:100px}.mapcard button{height:54px}.msg{top:35%}.sheet{padding:13px}}
 body.online .task,body.online #heat,body.online .unusedAction{display:none}.online .location{background:#112b2bd9;border:1px solid #83bba24d;border-radius:6px;padding:9px 13px;color:#f1e8cd;max-width:46vw}.online .mapcard{border-color:#8ecab26b;border-radius:12px;overflow:hidden}.online .mapcard button{border-radius:0}.online .info strong{font-variant-numeric:tabular-nums;font-size:clamp(26px,4.4vw,55px);color:#feecd1}.online .info{background:#112526d9;border-radius:9px;padding:6px 14px}.online .info br{display:none}.online .keys{opacity:.8}.online #roomTools{background:#244a41;color:#dbffec}.online .readout{background:#132e2b}.travel{display:flex;align-items:center;gap:10px;margin:10px 0}.travel select,#roomCode{background:#19332e;color:#f4e8c9;border:1px solid #698579;border-radius:6px;padding:10px}.sheet{max-height:88dvh;overflow:auto}.map-credit{display:none}.online .map-credit{display:block;position:fixed;bottom:2px;left:6px;font:10px system-ui;color:#e6eadb;background:#122421cb;padding:2px 4px;z-index:5}.map-credit a{color:inherit}.online #bigmap{height:min(42vh,360px)}@media(max-width:660px){.online .location{top:54px}.toolbar{max-width:100vw}.online .keys{display:none}}
 #sessionHUD{display:none}.playing #sessionHUD{display:flex;position:absolute;left:16px;top:52px;gap:5px;pointer-events:none}#sessionHUD span,.nametag,#chatFeed div{font:600 11px system-ui;color:#edf5e8;background:#162c2bdd;border-radius:4px;padding:4px 8px}#health{color:#a8e4c4!important}.nametag{position:absolute;top:0;left:0;pointer-events:none;white-space:nowrap}#tags{position:absolute;inset:0;pointer-events:none;overflow:hidden}#chatFeed{position:absolute;bottom:130px;right:14px;max-width:min(270px,48vw);pointer-events:none;overflow-wrap:anywhere}#chatFeed div{margin:2px}#chatForm{position:absolute;z-index:12;left:50%;bottom:80px;transform:translateX(-50%);background:#122b29;padding:6px;border-radius:7px;display:flex}#chatForm input,#nickname,#shareURL{background:#233d38;color:#fff;border:1px solid #668276;padding:9px;border-radius:4px}#chatForm button{background:#accab3;color:#15362a;border:0}.actions{flex-wrap:wrap}.playing .location{max-width:47vw}.online .task{display:none}.online #health:empty{display:none}#connectNote:empty{display:none}#connectNote{font-size:13px;color:#ffd58a}.online .map-credit{bottom:1px}.sheet #bigmap{width:100%;height:min(43vh,340px)}@media(max-width:740px){.playing #sessionHUD{left:10px;top:89px}.playing .toolbar{gap:3px}.playing .toolbar button{font-size:9px}.online #chatFeed{bottom:180px}.playing .info{bottom:114px}}
-#joy{display:grid;place-items:center;width:102px;height:102px;align-self:end;pointer-events:auto;touch-action:none;border-radius:50%;background:#152c32bf;border:2px solid #c4b99c}#joy i{width:40px;height:40px;border-radius:50%;background:#dacbaa}.touch .pad{display:none}body.driving #joy{display:none}body.driving .touch .pad{display:grid}body.driving [data-key=ShiftLeft]{display:none}</style></head><body>
+#joy{display:grid;place-items:center;width:102px;height:102px;align-self:end;pointer-events:auto;touch-action:none;border-radius:50%;background:#152c32bf;border:2px solid #c4b99c}#joy i{width:40px;height:40px;border-radius:50%;background:#dacbaa}.touch .pad{display:none}body.driving #joy{display:none}body.driving .touch .pad{display:grid}body.driving [data-key=ShiftLeft]{display:none}#rotatePhone{display:none}.copy h1{letter-spacing:-.065em}.copy .sub{color:#f3c376}.actions{display:flex;flex-wrap:wrap;gap:8px}.actions .primary{border-radius:6px;background:#f1c272;color:#242923}.actions .button{min-height:44px}.homefoot{letter-spacing:.12em}
+@media(pointer:coarse) and (orientation:portrait) and (max-width:600px){body.playing #rotatePhone{display:grid;position:fixed;inset:0;place-content:center;gap:12px;padding:24px;text-align:center;background:#142b2b;color:#f2e5c7;z-index:150}#rotatePhone strong{font-size:24px}}
+@media(pointer:coarse) and (orientation:landscape) and (max-height:560px){.copy{top:19%;bottom:auto;transform:none}.copy h1{font-size:clamp(38px,9vh,56px)}.copy .sub{font-size:19px}.copy p{margin:5px 0}.homefoot,.keys{display:none}.touch{bottom:max(10px,env(safe-area-inset-bottom));left:max(16px,env(safe-area-inset-left));right:max(16px,env(safe-area-inset-right))}.touch .stack{display:grid;grid-template-columns:repeat(2,minmax(46px,auto));gap:6px}#joy{width:86px;height:86px}.mapcard{top:8px;bottom:auto;left:auto;right:135px;width:108px}.mapcard canvas{max-height:55px}}
+</style></head><body>
 <canvas id="scene" tabindex="0" aria-label="3D street scene"></canvas><div id="shade"></div>
-<section id="home"><div class="topline caps"><i class="mark"></i> URBAN LIFE MYANMAR</div><div class="copy"><div class="caps kicker">MYANMAR &nbsp; / &nbsp; YANGON</div><h1>URBAN LIFE</h1><div class="sub">MYANMAR</div><p>Walk the streets, share a ride or start a friendly scrap. Invite your friends to your own Yangon world.</p><div class="actions"><button class="button primary" id="roomBtn">Enter World ↗</button><button class="button" id="joinBtn">Join Friend</button><button class="button" id="roam">Play Offline</button><button class="button" id="settingsBtn">Settings</button></div><p id="connectNote" role="status"></p></div><div class="homefoot">YANGON ONLINE &nbsp; / &nbsp; FIRST & THIRD PERSON</div></section>
+<div id="rotatePhone"><strong>ဖုန်းကို ဘေးစောင်းပေးပါ</strong><span>Rotate to landscape to play</span></div><section id="home"><div class="topline caps"><i class="mark"></i> URBAN LIFE MYANMAR</div><div class="copy"><div class="caps kicker">ရန်ကုန်မြို့</div><h1>URBAN LIFE</h1><div class="sub">MYANMAR</div><p>Meet your friends at Sule. Catch a city bus or take the long way along Strand Road.</p><div class="actions"><button class="button primary" id="roomBtn">Enter World ↗</button><button class="button" id="joinBtn">Join Friend</button><button class="button" id="settingsBtn">Settings</button></div><p id="connectNote" role="status"></p></div><div class="homefoot">ရန်ကုန် &nbsp; · &nbsp; YANGON</div></section>
 <div id="hud" hidden><div class="location caps"><i class="mark"></i><span id="district" class="locname"></span></div><section class="task panel"><div class="caps gold" id="chapter"></div><h2 id="objective"></h2><p id="detail"></p></section><div class="mapcard panel"><button id="miniBtn" aria-label="Open district map"><canvas id="mini"></canvas></button><div class="readout"><span id="account"></span><span id="viewMode"></span></div></div><div class="info"><div class="heat caps" id="heat"></div><br><strong id="velocity"></strong> <span class="caps" id="unit"></span></div><div class="prompt" id="prompt" hidden></div><div class="msg" id="msg" role="status" hidden></div><div class="pip" id="marker" hidden></div><div class="keys mono">WASD move / drive · E ride · Space jump / brake · F hit · T chat · M map</div></div>
 <div id="tags" aria-hidden="true"></div><div id="sessionHUD"><span id="presence"></span><span id="health"></span></div><div id="chatFeed" aria-live="polite"></div><form id="chatForm" hidden><input id="chatInput" aria-label="Chat message" maxlength="120" placeholder="Message your world" autocomplete="off"><button>Send</button></form><div class="toolbar"><button class="tool" id="chatBtn" hidden>Chat</button><button class="tool" id="roomTools" hidden>Invite</button><button class="tool" id="audioBtn">Sound off</button><button class="tool" id="cameraBtn" hidden>View · V</button><button class="tool" id="pauseBtn" hidden>Pause</button></div>
 <div class="touch"><div id="joy" aria-label="Walking joystick"><i></i></div><div class="pad"><button data-key="KeyW">Gas</button><button data-key="KeyA">◀</button><button data-key="KeyS">Reverse</button><button data-key="KeyD">▶</button></div><div class="stack"><button data-tap="KeyE">Ride</button><button data-tap="KeyF">Hit</button><button data-key="ShiftLeft">Run</button><button data-key="Space">Jump / brake</button></div></div>
@@ -151,6 +154,17 @@ function createCity(){
  for(let i=-2;i<3;i++){let t=i*S+S/2;city.box(HI+8,.3,t,.2,.7,S-13,'#939d9a');city.box(LO-8,.3,t,.2,.7,S-13,'#939d9a');city.box(t,.3,HI+8,S-13,.7,.2,'#939d9a');city.box(t,.3,LO-8,S-13,.7,.2,'#939d9a')}
 }
 function carMesh(type){
+ if(type===4||type===5){const m=new Mesh(),bus=type===4;
+ if(bus){m.box(0,.46,0,2.2,1.95,6.2,'#dbab45');m.box(0,1.34,0,2.22,.81,5.8,'#45636c');
+ for(const side of [-1,1])for(let z=-2.7;z<3;z+=.83)m.box(side*1.12,1.34,z,.045,.85,.08,'#ebc75e');
+ m.box(0,1.32,3.12,1.91,.83,.03,'#4c6870');m.box(0,2.16,3.12,.95,.2,.04,'#25433e');m.box(0,2.42,0,2.23,.12,6.2,'#e5debb');
+ for(const side of [-1,1])for(const z of [-1.95,1.95])m.tube([side*.98,.43,z],[side*1.14,.43,z],.43,.43,'#2d3231',0,12)
+ }else{for(const z of [-.72,.73])m.tube([-.1,.33,z],[.1,.33,z],.33,.33,'#283032',0,14);
+ m.tube([0,.34,-.72],[0,.8,.35],.075,.075,'#67767b');m.tube([0,.34,.73],[0,1.04,.41],.045,.045,'#879697');
+ m.box(0,.65,.12,.38,.28,.65,'#a55743');m.box(0,.87,-.32,.34,.12,.62,'#414342');m.box(0,1,.44,.61,.05,.08,'#474f51');
+
+ }return m}
+
  const m=new Mesh(),van=type===2,w=van?1.04:1.00,h=van?1.95:1.36,L=van?2.45:2.30;
  // Eight-sided body cross-sections give the hood, bumpers, doors and fenders distinct curves.
  let rings=[];const section=(z,ww,low,mid,high)=>[[-ww*.75,low,z],[-ww,low+.12,z],[-ww,mid,z],[-ww*.87,high,z],[ww*.87,high,z],[ww,mid,z],[ww,low+.12,z],[ww*.75,low,z]];
@@ -213,7 +227,7 @@ function makeRig(color,k){
   // An open-collar shirt and woven shoulder bag, built into the existing torso mesh.
   for(const side of [-1,1])torso.tube([side*.042,1.475,.09],[side*.095,1.393,.134],.023,.012,'#e4d6ae',0,5);
   torso.tube([-.145,1.45,.115],[.16,.987,.13],.015,.017,'#9e7850',0,5);
-  torso.box(.169,.88,.063,.16,.21,.125,'#926c48');torso.box(.17,1.025,.131,.166,.042,.012,'#c59a6a');
+  for(let row=0;row<3;row++)torso.box(.018,1.17+row*.075,.14,.016,.016,.012,'#e8d6b4');torso.box(.169,.88,.063,.16,.21,.125,'#926c48');torso.box(.17,1.025,.131,.166,.042,.012,'#c59a6a');
   ellipsoid(torso,-.018,1.755,-.002,.121,.06,.102,'#302a27',5,9)
  }
  const pants=['#3a494d','#36434e','#625952','#3c454b','#4c5957'][k];
@@ -330,7 +344,7 @@ function initGL(){
  gl=sceneCanvas.getContext('webgl',{alpha:false,antialias:true,preserveDrawingBuffer:false,powerPreference:'high-performance'});if(!gl)throw Error('WebGL is unavailable');
  mainProg=program(vsMain,fsMain);skyProg=program(vsSky,fsSky);depthProg=program(vsDepth,fsDepth);pointProg=program(vsPoints,fsPoints);atlas=makeAtlas();facadeTex=loadFacades();
  quadBuffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,quadBuffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);pointBuffer=gl.createBuffer();
- partitionMesh(city);partitionMesh(ground);[city,ground,skyline,...propMeshes,dogMesh,bargeMesh,remoteIdle,suleMesh,shwedagonMesh,cityHallMesh,...carMeshes,...rigs.flat(),contact,dashMesh,goalMesh].forEach(upload);shadow=targetBuffer(1536,1536,gl.NEAREST);
+ partitionMesh(city);partitionMesh(ground);[city,ground,skyline,...propMeshes,stopMesh,dogMesh,bargeMesh,remoteIdle,suleMesh,shwedagonMesh,cityHallMesh,...carMeshes,...rigs.flat(),contact,dashMesh,goalMesh].forEach(upload);shadow=targetBuffer(1536,1536,gl.NEAREST);
  if(shadow.valid){gl.bindFramebuffer(gl.FRAMEBUFFER,shadow.fb);gl.viewport(0,0,shadow.w,shadow.h);gl.clearColor(1,1,1,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.enable(gl.DEPTH_TEST);gl.useProgram(depthProg.p);gl.bindBuffer(gl.ARRAY_BUFFER,city.buf);attrs(depthProg,[['P',3,0]],12);gl.drawArrays(gl.TRIANGLES,0,city.count);gl.bindFramebuffer(gl.FRAMEBUFFER,null)}
  resize()
 }
@@ -367,8 +381,9 @@ function pieces(ref){
  if(geoActive()){for(const tile of cityTiles.values()){if(Math.hypot((tile.i+.5)*region.cell-view.x,(tile.j+.5)*region.cell-view.z)<640)draw(tile.mesh)}}else{draw(skyline);draw(city)}
  if(!ref){if(!geoActive())draw(ground);gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.depthMask(false);for(let c of cars)if(c.hp>0&&visible(c.x,c.z))draw(contact,c.x,.047,c.z,c.a);gl.depthMask(true);gl.disable(gl.BLEND)}
  for(let c of cars)if(c.hp>0&&visible(c.x,c.z)&&!(mode==='play'&&car===c&&first&&!ref))draw(carMeshes[c.type],c.x,carHeight(c),c.z,c.a,0,c.color);
+ for(const c of cars)if(c.type===5&&c.driver&&visible(c.x,c.z,2,35)&&!(c===car&&first)){const a=c.a,y=carHeight(c),rig=rigs[0];draw(rig[0],c.x,y+.02,c.z,a,.1);for(const side of [-1,1]){const x=c.x+side*.14*Math.cos(a),z=c.z-side*.14*Math.sin(a);draw(rig[1],x,y+.88,z,a,-1.1);draw(rig[3],x+Math.sin(a)*.36,y+.70,z+Math.cos(a)*.36,a,.23);draw(rig[2],x,y+1.42,z,a,-.65);draw(rig[4],x+Math.sin(a)*.17,y+1.19,z+Math.cos(a)*.17,a,-1.12)}}
  if(session){for(const p of props)if(p.hp>0&&visible(p.x,p.z))draw(propMeshes[p.kind],p.x,.13,p.z,p.a);
- if(geoActive()){for(const l of cityLandmarks)if(visible(l.x,l.z,35,350))draw(l.mesh(),l.x,.14,l.z);if(visible(169,-29,38,300))draw(cityHallMesh,169,.18,-29)}}
+ if(geoActive()){for(const s of region.stops){const x=s.x+Math.cos(s.a)*(s.w*.5+1),z=s.z-Math.sin(s.a)*(s.w*.5+1);if(visible(x,z,3,90))draw(stopMesh,x,.1,z,s.a)}for(const l of cityLandmarks)if(visible(l.x,l.z,35,350))draw(l.mesh(),l.x,.14,l.z);if(visible(169,-29,38,300))draw(cityHallMesh,169,.18,-29)}}
  for(const n of streetPeople)if(visible(n.x,n.z,2,48)){if(n.kind===5)draw(dogMesh,n.x,walkHeight(n.x,n.z)+(n.moving?.018*Math.abs(Math.sin(n.walk)):0),n.z,n.a);else drawHuman(n,rigs[n.kind]||rigs[2])}
  for(let p of people)drawHuman(p,rigs[p.skin]);for(let p of guards)drawHuman(p,rigs[1]);
  let detailed=0;for(let p of peers)if(!p.car&&p.hp>0&&visible(p.x,p.z,2,75)){
@@ -401,6 +416,8 @@ function buildModels(){createCity();
  const lampModel=new Mesh(),crate=new Mesh();lampModel.tube([0,0,0],[0,5.3,0],.12,.075,'#637579',0,6);
  lampModel.box(.52,5.25,0,1.2,.13,.14,'#667679');lampModel.box(.97,5.21,0,.48,.07,.33,'#ffe3a0',2);
  crate.box(0,0,0,1.15,.85,.86,'#976b45',8);crate.box(0,.12,.44,1.18,.12,.07,'#b48c59');crate.box(0,.60,.44,1.18,.12,.07,'#b48c59');propMeshes=[lampModel,crate];
+ stopMesh=new Mesh();stopMesh.tube([0,0,0],[0,3,0],.065,.065,'#65746f');stopMesh.box(0,2.1,0,.76,.65,.08,'#285d50');stopMesh.box(0,2.31,.055,.49,.20,.035,'#ecd9a7');for(const x of [-.16,.16])stopMesh.box(x,2.23,.055,.075,.09,.035,'#ecd9a7');
+ stopMesh.box(1.45,.43,0,1.9,.12,.48,'#9d7955');for(const x of [.72,2.17])stopMesh.box(x,0,0,.12,.43,.33,'#626b62');
  dogMesh=new Mesh();ellipsoid(dogMesh,0,.49,0,.15,.17,.37,'#ac8155');ellipsoid(dogMesh,0,.69,.26,.135,.14,.14,'#ac8155');dogMesh.box(0,.61,.38,.16,.10,.15,'#766048');for(const side of [-1,1]){dogMesh.tube([side*.095,.78,.25],[side*.12,.91,.23],.062,.013,'#70543f',0,5);for(const z of [-.21,.21])dogMesh.tube([side*.106,.43,z],[side*.11,.045,z+.025],.052,.033,'#98754e',0,6)}dogMesh.tube([0,.51,-.29],[0,.72,-.51],.055,.025,'#9d7950',0,6);
  bargeMesh=new Mesh();
  for(const side of [-1,1]){const x=side*6,m=bargeMesh;m.box(x,.2,0,4,2.2,35,'#aa7937');
@@ -417,8 +434,8 @@ function buildModels(){createCity();
  for(const side of [-1,1]){remoteIdle.box(side*.105,.09,0,.14,.77,.17,'#434c50');remoteIdle.box(side*.105,.015,.036,.16,.09,.24,'#333c3d');remoteIdle.tube([side*.22,1.35,0],[side*.25,.88,.035],.072,.048,'#9b8068',0,5)}
  suleMesh=new Mesh();const tier=[[0,8.8],[2.4,8.1],[3.6,6.5],[5.2,5.2],[8,4.5],[12,3.15],[16,1.9],[19,.85],[24,.1]];
  for(let i=1;i<tier.length;i++){const [y,r]=tier[i-1],[h,R]=tier[i];suleMesh.tube([0,y,0],[0,h,0],r,R,'#dab24d',0,12)}
- for(let i=0;i<4;i++)carMeshes.push(carMesh(i));
- rigs.push(makeRig('#506e6b',0),makeRig('#414f59',1),makeRig('#76968d',2),makeRig('#b58769',3),makeRig('#8e879a',4));
+ for(let i=0;i<6;i++)carMeshes.push(carMesh(i));
+ rigs.push(makeRig('#658b83',0),makeRig('#414f59',1),makeRig('#76968d',2),makeRig('#b58769',3),makeRig('#8e879a',4));
  contact=new Mesh();contact.quad([-1.6,0,-2.82],[1.6,0,-2.82],[1.6,0,2.82],[-1.6,0,2.82],'#10181b',11);
  dashMesh=new Mesh();
  dashMesh.box(0,.17,-.05,1.98,.16,2.90,'#22292c');dashMesh.box(0,.31,.74,1.91,.61,.82,'#30373a');
@@ -447,7 +464,7 @@ const story=[
   {kind:'broadcast',title:'Put the recording on air',hint:'Park the relay van at the transmitter for four seconds.',p:V(-S+12,-S+4),id:'van'},
   {kind:'deliver',title:'Leave the van at Strand Road',hint:'Get clear of pursuit and park at the handoff.',p:V(2*S+5,S+24),id:'van'}]}
 ];
-const CAR_NAMES=['Kestrel GT','City Sedan','Relay Van','District Cruiser'];
+const CAR_NAMES=['Kestrel GT','City Sedan','Relay Van','District Cruiser','YBS City Bus','Motorbike'];
 let player={x:-7.7,z:-10.6,a:.21,walk:0},car=null,mode='home',panel='',free=false,first=false,clock=0,elapsed=0,chapter=0,stage=0,money=0,progress=0,saved=0,heat=0,sightAge=99,lastSeen=V(0,0),searchClock=0,capture=0,shoveCool=0,damageCool=0,msgTime=0,nextHud=0,lookYaw=.23,lookPitch=-.07,lookIdle=5,autoQuality=0,lastNoise=-100,camSnap=true;
 try{saved=clamp(parseInt(localStorage.getItem('yangon-after-rain-v2'),10)||0,0,3);first=localStorage.getItem('yangon-after-rain-view')==='1'}catch{}
 function actor(){return car||player}
@@ -571,23 +588,23 @@ function updateTask(dt){
  let ready=(!t.id||car?.id===t.id)&&hyp(actor(),t.p)<4.4&&(!car||Math.abs(car.v)<2.4)&&(t.kind!=='deliver'||heat<=0);
  progress=ready?progress+dt:0;if(progress>=(t.kind==='broadcast'?4:.55))advance()
 }
-function movePlayer(dt){
+function movePlayer(dt){if(phonePortrait.matches)return;
  const on=k=>keys.has(k)||padHeld.has(k),U=on('KeyW')||on('ArrowUp'),D=on('KeyS')||on('ArrowDown'),L=on('KeyA'),Rt=on('KeyD'),turn=+on('ArrowRight')-+on('ArrowLeft');
  if(!car){lookYaw+=turn*1.85*dt;if(on('KeyZ'))lookPitch=clamp(lookPitch+.8*dt,-.85,.65);if(on('KeyX'))lookPitch=clamp(lookPitch-.8*dt,-.85,.65);
   let f=+U-+D-(Math.abs(stickY)>.12?stickY:0),r=+Rt-+L+(Math.abs(stickX)>.12?stickX:0),n=Math.max(1,Math.hypot(f,r));player.running=on('ShiftLeft')||on('ShiftRight');const targetSpeed=(f||r)?(player.running?5.9:2.25):0;player.paceNow=mix(player.paceNow||0,targetSpeed,1-Math.exp(-dt*8));let sp=player.paceNow,dx=(Math.sin(lookYaw)*f+Math.cos(lookYaw)*r)/n*dt*sp,dz=(Math.cos(lookYaw)*f-Math.sin(lookYaw)*r)/n*dt*sp;
   let allowed=(x,z)=>!cars.some(c=>{let X=x-c.x,Z=z-c.z;return c.hp>0&&Math.abs(X*Math.cos(c.a)-Z*Math.sin(c.a))<1.17&&Math.abs(X*Math.sin(c.a)+Z*Math.cos(c.a))<2.45});
   if(!allowed(player.x+dx,player.z))dx=0;if(!allowed(player.x,player.z+dz))dz=0;const prevX=player.x,prevZ=player.z;moveBody(player,dx,dz,.31);const walked=Math.hypot(player.x-prevX,player.z-prevZ);player.moving=walked>.0002;if(player.moving){player.a+=wrap(Math.atan2(dx,dz)-player.a)*Math.min(1,dt*12);player.walk+=walked*(player.running?2.95:3.85);if(heat>0&&player.running)makeNoise(player,8)}return
  }
- const c=car,steer=(+Rt-+L)||turn,hand=on('Space'),max=[32,26,23,31][c.type]*(c.hp<35?.72:1);
+ const c=car,steer=(+Rt-+L)||turn,hand=on('Space'),max=[32,26,23,31,17,27][c.type]*(c.hp<35?.72:1);
  const old=c.a,forward=Math.sin(old)*c.vx+Math.cos(old)*c.vz;
  let lateral=Math.cos(old)*c.vx-Math.sin(old)*c.vz;
  const throttle=Number(U)-Number(D),speed=Math.abs(forward),reverse=throttle*forward<-.10;
- const stopping=hand||reverse||(U&&D), brake=[9.8,8.7,7.8,10][c.type];
+ const stopping=hand||reverse||(U&&D), brake=[9.8,8.7,7.8,10,7,9][c.type];
  const resistance=.38+.015*speed+.0026*speed*speed;
  const loss=(resistance+(stopping?brake*(hand?.92:1):0))*dt;
  let longitudinal=Math.sign(forward)*Math.max(0,speed-loss);
  if(!stopping&&throttle){
-   const top=throttle>0?max:8, power=(throttle>0?[8.1,6.6,4.8,7.4][c.type]:3.5);
+   const top=throttle>0?max:8, power=(throttle>0?[8.1,6.6,4.8,7.4,3.4,7.6][c.type]:3.5);
    longitudinal+=throttle*power*clamp(1-(speed/top)**1.6,0,1)*dt;
  }
  c.steer=mix(c.steer||0,steer,1-Math.exp(-6.8*dt));
@@ -726,7 +743,7 @@ function prefs(){
 }
 function closeMenu(){if(panel==='caught'||panel==='wreck')return;panel='';$('modal').hidden=true;resetKeys();document.activeElement?.blur();hud()}
 function titleScreen(){leaveRoom();mode='home';panel='';free=true;stage=0;resetWorld(0);$('home').hidden=false;$('modal').hidden=true;$('hud').hidden=true;$('pauseBtn').hidden=true;$('cameraBtn').hidden=true;document.body.classList.remove('playing');clock=0}
-function action(code){if(panel||chatOpen)return;if(session&&code==='Space'&&!car){jump();return}if(session&&code==='KeyF'){strike();return}if(session&&code==='KeyT'){openChat();return}if(code==='KeyE')interact();else if(code==='KeyF')shove();else if(code==='KeyV')switchView();else if(code==='KeyM')openMenu('map');else if(code==='Escape'||code==='KeyP')openMenu('pause')}
+function action(code){if(phonePortrait.matches&&mode==="play")return;if(panel||chatOpen)return;if(session&&code==='Space'&&!car){jump();return}if(session&&code==='KeyF'){strike();return}if(session&&code==='KeyT'){openChat();return}if(code==='KeyE')interact();else if(code==='KeyF')shove();else if(code==='KeyV')switchView();else if(code==='KeyM')openMenu('map');else if(code==='Escape'||code==='KeyP')openMenu('pause')}
 window.addEventListener('keydown',e=>{if(chatOpen||e.target?.matches?.('input,select,textarea')||e.metaKey||e.ctrlKey||e.altKey)return;if(mode==='home'){if(e.code==='Enter'&&document.activeElement===document.body&&ready&&$('modal').hidden){e.preventDefault();enterWorld('host')}return}
  if(panel){if(e.code==='Tab'){let all=[...$('mbody').querySelectorAll('button')],idx=all.indexOf(document.activeElement);e.preventDefault();all[(idx+(e.shiftKey?-1:1)+all.length)%all.length]?.focus()}if((e.code==='Escape'||e.code==='KeyM')&&!e.repeat){e.preventDefault();closeMenu()}return}
  if(['Space','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Tab'].includes(e.code))e.preventDefault();keys.add(e.code);if(!e.repeat)action(e.code)});
@@ -736,7 +753,7 @@ sceneCanvas.onpointermove=e=>{if(document.pointerLockElement===sceneCanvas||!dra
 sceneCanvas.onpointercancel=sceneCanvas.onlostpointercapture=sceneCanvas.onpointerup=()=>{drag=null};
 for(let el of document.querySelectorAll('[data-key]')){let code=el.dataset.key;el.onpointerdown=e=>{e.preventDefault();el.setPointerCapture(e.pointerId);keys.add(code);if(code==='Space'&&!car)jump();el.classList.add('sel')};let clear=()=>{keys.delete(code);el.classList.remove('sel')};el.onpointerup=el.onpointercancel=el.onlostpointercapture=clear}
 for(let el of document.querySelectorAll('[data-tap]'))el.onclick=()=>action(el.dataset.tap);
-$('roomBtn').onclick=()=>enterWorld('host');$('roam').onclick=()=>enterWorld('solo');$('settingsBtn').onclick=prefs;
+$('roomBtn').onclick=()=>enterWorld('host');$('settingsBtn').onclick=prefs;
 $('roomTools').onclick=inviteFriend;$('roomTools').textContent='Invite';$('chatBtn').onclick=openChat;
 $('chatForm').onsubmit=e=>{e.preventDefault();const text=$('chatInput').value.trim();if(text)sendAction({t:'chat',text});$('chatInput').value='';closeChat();sceneCanvas.focus()};
 $('chatInput').onkeydown=e=>{if(e.key==='Escape'){closeChat();sceneCanvas.focus()}e.stopPropagation()};
@@ -760,6 +777,7 @@ function readController(now){
  }else if(panel){if(edge(1)||edge(9))closeMenu();else if(panel==='map'){if(edge(4))$('farMap').click();if(edge(5))$('nearMap').click();if(edge(0))$('centerMap').click()}}
  padPrevious=pad.buttons.map(b=>b.pressed)
 }
+const phonePortrait=window.matchMedia?.("(pointer:coarse) and (orientation:portrait) and (max-width:600px)")||{matches:false};phonePortrait.addEventListener?.("change",resetKeys);
 function frame(now){if(!ready)return;readController(now);streetJazz();iconsAndTags(now);if(geoActive()&&now>nextTiles){nextTiles=now+900;const p=actor();loadAround(p.x,p.z).catch(()=>notify('Loading the next streets…',2))}let raw=(now-(previous||now))/1000;previous=now;let dt=Math.min(.068,raw);
  if(!panel){if(car&&seat==='rider'){const lastYaw=car.a;sampleRide(car,now);lookYaw+=wrap(car.a-lastYaw)}clock+=dt;if(mode==='play'){elapsed+=dt;let steps=Math.max(1,Math.ceil(dt*54));for(let i=0;i<steps&&!panel;i++)simulation(dt/steps);msgTime-=dt;if(msgTime<0)$('msg').hidden=true;nextHud-=dt;if(nextHud<=0){hud();nextHud=.12}}
   for(const n of streetPeople){const x=n.x,z=n.z,k=1-Math.exp(-14*dt);n.x=mix(x,n.tx,k);n.z=mix(z,n.tz,k);n.walk+=Math.hypot(n.x-x,n.z-z)*4}
@@ -843,7 +861,7 @@ class StreetWorld {
     for(const n of this.walkers){n.moving=false;if(n.wait>now)continue;
       if(now>(n.observe||0)){n.observe=now+650;for(const c of this.vehicles.values())if(c.driver&&Math.hypot(c.x-n.x,c.z-n.z)<4){n.flee=now+1700;n.dir=(c.x-n.x)*Math.sin(n.road)+(c.z-n.z)*Math.cos(n.road)>0?-1:1;break}}
       const delta=dt*(n.flee>now?3.1:1.05)*n.dir,x=n.x+Math.sin(n.road)*delta,z=n.z+Math.cos(n.road)*delta;
-      if(Math.abs(n.d+delta)>9||this.streetBlocked(x,z)){n.dir*=-1;n.wait=now+(n.flee>now?125:1600);continue}
+      if(Math.abs(n.d+delta)>(n.kind===5?6:8+n.kind)||this.streetBlocked(x,z)){n.dir*=-1;n.wait=now+(n.flee>now?125:700+Math.random()*2300);if(n.flee<=now)n.a+=Math.random()*.85-.425;continue}
       n.x=x;n.z=z;n.d+=delta;n.a=n.road+(n.dir<0?Math.PI:0);n.moving=true
     }
     const t=this.traffic;if(t){const c=this.vehicles.get(t.id);
@@ -882,13 +900,13 @@ let streetPeople=[],streetStars=0,streetEscape=0;
 let myHP=100,myLife=0,seat='',parkedId='',lastChat=0,chatOpen=false,connecting=false,mapCatalogue=null;
 let hostLastSeen=0,guestPing=0;
 const clients=new Map(),props=[],tagNodes=new Map();
-let dogMesh,bargeMesh;let remoteIdle,propMeshes=[],suleMesh,shwedagonMesh,cityHallMesh,frameRate=0,frames=0,perfStart=0,worldTimer=0,peerLoader=null;
+let stopMesh, dogMesh,bargeMesh;let remoteIdle,propMeshes=[],suleMesh,shwedagonMesh,cityHallMesh,frameRate=0,frames=0,perfStart=0,worldTimer=0,peerLoader=null;
 const linkBase='yangon-rain-v2-', maxClients=20;
 function displayName(){try{return localStorage.getItem('yangon-nickname')||'Explorer'}catch{return 'Explorer'}}
 function textNotice(s){$('connectNote').textContent=s;if(mode==='play')notify(s,4)}
 function loadPeer(){
   if(window.Peer)return Promise.resolve();if(peerLoader)return peerLoader;
-  peerLoader=new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js';s.onload=resolve;s.onerror=()=>{peerLoader=null;reject(Error('Signaling library unavailable. Play Offline is ready.'))};document.head.append(s)});
+  peerLoader=new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js';s.onload=resolve;s.onerror=()=>{peerLoader=null;reject(Error('Signaling library unavailable. Please retry.'))};document.head.append(s)});
   return peerLoader;
 }
 async function readMapFile(name){
@@ -989,7 +1007,7 @@ function createTransport(id){
     const p=new window.Peer(id,{debug:0,config:{iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun.cloudflare.com:3478'}]}});peer=p;
     p.once('open',()=>resolve(p));p.on('error',e=>{
       if(p!==peer)return;
-      if(!session)reject(Error(e.type==='peer-unavailable'?'That world has closed. Ask the host for a new invite.':'Signaling unavailable. Retry or play offline.'));
+      if(!session)reject(Error(e.type==='peer-unavailable'?'That world has closed. Ask the host for a new invite.':'Signaling unavailable. Retry or reconnect.'));
       else if(e.type!=='peer-unavailable')textNotice('Signaling interrupted. Existing connections may continue.');
     });
     p.on('disconnected',()=>{if(p===peer&&session)textNotice('Signaling disconnected. New invites may need a new world.')});
@@ -1012,13 +1030,13 @@ let audioStarted=false;
 async function enterWorld(kind,target=''){
  if(!audioStarted&&navigator.userActivation?.isActive){audioStarted=true;if(!sound)toggleSound()}
   if(connecting)return;leaveRoom();connecting=true;const epoch=linkSerial;
-  textNotice(kind==='solo'?'Opening the streets…':'Connecting to the world…');
+  textNotice('Connecting to the world…');
   try{
-    if(kind==='solo'){const geo=await prepareMap();if(epoch!==linkSerial)return;localId='local';launchWorld(geo,false);localWorld()}
+    if(kind!=='host'&&kind!=='guest')throw Error('Choose Enter World or Join Friend.')
     else{
-      await timed(loadPeer(),14000,'Signaling library timed out. Play Offline is available.');
+      await timed(loadPeer(),14000,'Signaling library timed out. Please retry.');
       if(epoch!==linkSerial)return;
-      const transport=await timed(createTransport((kind==='host'?linkBase:'yangon-guest-')+crypto.randomUUID()),15000,'Signaling connection timed out. Try again or play offline.');
+      const transport=await timed(createTransport((kind==='host'?linkBase:'yangon-guest-')+crypto.randomUUID()),15000,'Signaling connection timed out. Try again or reconnect.');
       if(epoch!==linkSerial)return;localId=transport.id;
       if(kind==='host'){worldId=localId;const geo=await prepareMap();if(epoch!==linkSerial)return;launchWorld(geo,true);localWorld();transport.on('connection',acceptConnection)}
       else{
@@ -1043,7 +1061,7 @@ async function enterWorld(kind,target=''){
       }
     }
     worldTimer=setInterval(tickWorld,125);$('connectNote').textContent='';connecting=false;
-  }catch(e){if(epoch===linkSerial)failWorld(e.message||'Connection failed. Play Offline is available.')}
+  }catch(e){if(epoch===linkSerial)failWorld(e.message||'Connection failed. Please retry.')}
 }
 function inviteLink(){const url=new URL(location.href);url.search='';url.hash='world='+encodeURIComponent(worldId);return url.href}
 function parseInvite(value){try{const id=new URLSearchParams(new URL(value).hash.slice(1)).get('world');return /^yangon-rain-v2-[a-f0-9-]{36}$/.test(id)?id:''}catch{return ''}}
@@ -1185,7 +1203,7 @@ function prepareFleet(){
   region.stops.forEach((s,i)=>{
     for(let k=0;k<3;k++){
       const offset=(k-1)*8,side=Math.min(2,s.w*.22),x=s.x+Math.sin(s.a)*offset+Math.cos(s.a)*side,z=s.z+Math.cos(s.a)*offset-Math.sin(s.a)*side;
-      cars.push(newCar('city'+i+'_'+k,k%3,x,z,s.a,['#747e79','#b3b6ae','#95796b'][k]));
+      cars.push(newCar('city'+i+'_'+k,(k===0?4:k===2?5:i%3),x,z,s.a,['#747e79','#b3b6ae','#95796b'][k]));
     }
   });
 }
