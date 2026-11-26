@@ -194,27 +194,34 @@ function carMesh(type){
  m.box(0,.29,-L+.12,1.66,.13,.35,'#343d41');m.box(0,.75,-L+.09,.18,.044,.04,'#a8aba3');
  for(let j=1;j<6&&!van;j++){let t=j/7,zz=mix(rear,toprear,t),y=mix(.88,h,t),ww=mix(.9,.76,t)*.88;m.tube([-ww,y+.008,zz-.008],[ww,y+.008,zz-.008],.005,.005,'#727c7e',0,3)}
  m.box(0,.41,L+.025,.93,.17,.045,'#28363b',8);m.box(0,.43,-L-.025,.45,.14,.04,'#ded4b9');if(type===3){m.box(0,h+.015,-.1,.88,.12,.26,'#3b454d');m.box(-.25,h+.13,-.1,.35,.1,.22,'#70a8fb',2);m.box(.25,h+.13,-.1,.35,.1,.22,'#fb6b64',2)}
- // Smooth matching paint surfaces while preserving the sharp seams between panels.
- const shared=new Map();for(let i=0;i<m.a.length;i+=12){if(m.a[i+11]!==6)continue;let key=m.a.slice(i,i+3).map(n=>n.toFixed(3)).join(',');if(!shared.has(key))shared.set(key,[]);shared.get(key).push(i)}
- for(let list of shared.values()){let ns=list.map(i=>m.a.slice(i+3,i+6));for(let j=0;j<list.length;j++){let n=ns[j],sum=[0,0,0];for(let v of ns){if(n[0]*v[0]+n[1]*v[1]+n[2]*v[2]>.53)for(let k=0;k<3;k++)sum[k]+=v[k]}let l=Math.hypot(...sum)||1;for(let k=0;k<3;k++)m.a[list[j]+3+k]=sum[k]/l}}
+ // Faceted enamel, split grille and narrow contrasting bonnet panels.
+ if(type<2){for(const side of [-1,1]){
+  m.box(side*.49,.902,1.18,.19,.018,.58,'#b6b4a6');m.box(side*.25,.475,L+.046,.4,.065,.028,'#546265');
+  m.box(side*.99,.59,-.12,.035,.063,1.75,'#b4a480')
+ }}
  return m
 }
 function ellipsoid(m,x,y,z,rx,ry,rz,color,rows=6,cols=10){
  const point=(i,j)=>{let a=i*TAU/cols,b=-PI/2+j*PI/rows;return [x+rx*Math.cos(b)*Math.sin(a),y+ry*Math.sin(b),z+rz*Math.cos(b)*Math.cos(a)]};
  for(let j=0;j<rows;j++)for(let i=0;i<cols;i++){let o=m.a.length;m.quad(point(i,j),point(i+1,j),point(i+1,j+1),point(i,j+1),color);for(let k=o;k<m.a.length;k+=12){let n=[(m.a[k]-x)/(rx*rx),(m.a[k+1]-y)/(ry*ry),(m.a[k+2]-z)/(rz*rz)],d=Math.hypot(...n)||1;for(let v=0;v<3;v++)m.a[k+3+v]=n[v]/d}}
 }
+// Flat triangle normals keep the planes of the face and tailored cloth legible.
+function facet(m,x,y,z,rx,ry,rz,color,rows=5,cols=8){
+ const at=(i,j)=>{const a=i*TAU/cols,b=-PI/2+j*PI/rows;return [x+rx*Math.cos(b)*Math.sin(a),y+ry*Math.sin(b),z+rz*Math.cos(b)*Math.cos(a)]};
+ for(let j=0;j<rows;j++)for(let i=0;i<cols;i++){const a=at(i,j),b=at(i+1,j),c=at(i+1,j+1),d=at(i,j+1);if(j)m.tri(a,b,c,color);if(j+1<rows)m.tri(a,c,d,color)}
+}
 function makeRig(color,k){
  let torso=new Mesh(),leg=new Mesh(),arm=new Mesh(),shin=new Mesh(),forearm=new Mesh();
- const skin=['#bd8868','#a7765d','#c08d70','#996a55','#c59270'][k],hair='#302b29';
- ellipsoid(torso,0,1.245,-.005,.202,.26,.139,color,8,12);
- ellipsoid(torso,0,1.358,-.008,.218,.106,.129,color,6,12);
- ellipsoid(torso,0,1.018,.002,.167,.167,.126,color,6,10);
- ellipsoid(torso,0,.90,-.008,.173,.112,.131,'#414c50',6,10);
+ const skin=['#bd8868','#a7765d','#c08d70','#996a55','#c59270'][k],hair=k===4?'#857b6d':'#302b29';
+ facet(torso,0,1.245,-.005,.202,.26,.139,color,8,12);
+ facet(torso,0,1.358,-.008,.218,.106,.129,color,6,12);
+ facet(torso,0,1.018,.002,.167,.167,.126,color,6,10);
+ facet(torso,0,.90,-.008,.173,.112,.131,'#414c50',6,10);
  torso.box(0,.903,.003,.35,.043,.208,'#48433d');torso.box(0,.907,.109,.062,.035,.018,'#96928a');
- torso.tube([0,1.43,.008],[0,1.58,.008],.076,.083,skin);ellipsoid(torso,0,1.635,.018,.112,.151,.105,skin,8,12);
- ellipsoid(torso,0,1.722,-.004,.117,.088,.111,hair);ellipsoid(torso,0,1.671,-.047,.115,.099,.081,hair);
- for(let side of [-1,1]){ellipsoid(torso,side*.109,1.63,.005,.023,.039,.020,skin,4,6);torso.box(side*.042,1.654,.110,.034,.013,.008,'#55433d');torso.box(side*.042,1.671,.108,.04,.009,.009,'#51433c');torso.tube([side*.063,1.48,.081],[side*.111,1.40,.124],.021,.013,'#5d534a',0,5)}
- ellipsoid(torso,0,1.623,.117,.022,.034,.030,skin,4,6);torso.box(0,1.591,.116,.047,.008,.007,'#8d625a');
+ torso.tube([0,1.43,.008],[0,1.58,.008],.076,.083,skin);facet(torso,0,1.632,.018,.124,.159,.112,skin,5,8);
+ facet(torso,-.009,1.734,-.004,.13,.083,.119,hair,4,7);facet(torso,0,1.671,-.047,.115,.099,.081,hair);
+ for(let side of [-1,1]){facet(torso,side*.109,1.63,.005,.023,.039,.020,skin,4,6);torso.box(side*.042,1.654,.110,.034,.013,.008,'#55433d');torso.box(side*.042,1.671,.108,.04,.009,.009,'#51433c');torso.tube([side*.063,1.48,.081],[side*.111,1.40,.124],.021,.013,'#5d534a',0,5)}
+ facet(torso,0,1.623,.117,.022,.034,.030,skin,4,6);torso.box(0,1.591,.116,.047,.008,.007,'#8d625a');
  torso.tube([0,1.03,.14],[0,1.43,.109],.008,.008,'#92877b',0,4);
  if(k===2||k===4){
   for(let i=0;i<5;i++){
@@ -222,24 +229,26 @@ function makeRig(color,k){
    torso.tube([0,y,0],[0,y+.018,0],r,r,k===2?'#a1a9a0':'#b09c78',0,14);
   }
  }
- if(k===1){ellipsoid(torso,0,1.757,0,.126,.059,.13,'#35434c');torso.box(0,1.741,.096,.22,.019,.14,'#343f49');torso.box(-.10,1.31,.129,.040,.052,.014,'#d8be72')}
- if(k===0){
+ if(k===1){facet(torso,0,1.757,0,.126,.059,.13,'#35434c');torso.box(0,1.741,.096,.22,.019,.14,'#343f49');torso.box(-.10,1.31,.129,.040,.052,.014,'#d8be72')}
+ if(k===0||k===4){facet(torso,0,1.561,.058,.099,.064,.085,k===4?'#796f62':'#43362d',3,7)}
+ if(k===0){torso.tri([-.11,1.48,.091],[-.04,1.34,.151],[0,1.425,.146],'#d1c5a8');torso.tri([.12,1.48,.09],[0,1.425,.146],[.058,1.345,.151],'#b7b297');
+ torso.box(-.102,1.225,.137,.092,.077,.012,'#486f72');
   // An open-collar shirt and woven shoulder bag, built into the existing torso mesh.
   for(const side of [-1,1])torso.tube([side*.042,1.475,.09],[side*.095,1.393,.134],.023,.012,'#e4d6ae',0,5);
   torso.tube([-.145,1.45,.115],[.16,.987,.13],.015,.017,'#9e7850',0,5);
   for(let row=0;row<3;row++)torso.box(.018,1.17+row*.075,.14,.016,.016,.012,'#e8d6b4');torso.box(.169,.88,.063,.16,.21,.125,'#926c48');torso.box(.17,1.025,.131,.166,.042,.012,'#c59a6a');
-  ellipsoid(torso,-.018,1.755,-.002,.121,.06,.102,'#302a27',5,9)
+  facet(torso,-.018,1.755,-.002,.121,.06,.102,'#302a27',5,9)
  }
  const pants=['#3a494d','#36434e','#625952','#3c454b','#4c5957'][k];
- ellipsoid(leg,0,-.18,.009,.100,.234,.105,pants,6,10);
- ellipsoid(leg,0,-.39,.005,.077,.066,.075,pants,5,8);
- ellipsoid(shin,0,-.165,-.023,.071,.202,.077,pants,6,10);
- ellipsoid(shin,0,-.356,.031,.081,.056,.145,'#3e4241',5,10);
+ facet(leg,0,-.18,.009,.100,.234,.105,pants,6,10);
+ facet(leg,0,-.39,.005,.077,.066,.075,pants,5,8);
+ facet(shin,0,-.165,-.023,.071,.202,.077,pants,6,10);
+ facet(shin,0,-.356,.031,.081,.056,.145,'#3e4241',5,10);
  shin.box(0,-.428,.031,.153,.026,.241,'#8f8c7e');
- ellipsoid(arm,0,-.034,0,.091,.104,.093,color,5,8);
- ellipsoid(arm,0,-.117,0,.080,.134,.077,color,6,10);ellipsoid(arm,0,-.233,.002,.058,.084,.057,skin,5,8);
- ellipsoid(forearm,0,-.106,.008,.055,.15,.053,skin,6,8);
- ellipsoid(forearm,0,-.276,.014,.045,.056,.035,skin,5,8);
+ facet(arm,0,-.034,0,.091,.104,.093,color,5,8);
+ facet(arm,0,-.117,0,.080,.134,.077,color,6,10);facet(arm,0,-.233,.002,.058,.084,.057,skin,5,8);
+ facet(forearm,0,-.106,.008,.055,.15,.053,skin,6,8);
+ facet(forearm,0,-.276,.014,.045,.056,.035,skin,5,8);
  return [torso,leg,arm,shin,forearm]
 }
 
@@ -615,17 +624,29 @@ function movePlayer(dt){if(phonePortrait.matches)return;
  const delta=c.a-old,along=longitudinal*Math.cos(delta)+lateral*Math.sin(delta);
  lateral=(lateral*Math.cos(delta)-longitudinal*Math.sin(delta))*Math.exp(-(hand&&speed>5?1.25:10.5)*dt);
  c.v=along;c.vx=Math.sin(c.a)*along+Math.cos(c.a)*lateral;c.vz=Math.cos(c.a)*along-Math.sin(c.a)*lateral;
- let X=c.x+c.vx*dt,Z=c.z+c.vz*dt;function hit(x,z){for(let d of [-1.32,0,1.32]){let px=x+Math.sin(c.a)*d,pz=z+Math.cos(c.a)*d;if(solidAt(px,pz,.91))return true;
-  for(const o of cars){if(o!==c&&o.hp>0&&Math.hypot(px-o.x,pz-o.z)<2.02)return true}}return false}
- if(hit(X,Z)){if(session&&Math.abs(c.v)>5)strike(true);
-  const blockX=hit(X,c.z),blockZ=hit(c.x,Z),corner=!blockX&&!blockZ;
-  if(blockX||corner)c.vx*=-.14;else c.x=X;
-  if(blockZ||corner)c.vz*=-.14;else c.z=Z;
-  const impact=Math.max(0,Math.hypot(X-c.x,Z-c.z)/dt);
-  if(blockX&&blockZ)c.a=old;
-  c.v=c.vx*Math.sin(c.a)+c.vz*Math.cos(c.a);
-  if(!session&&impact>6&&damageCool<=0){c.hp=Math.max(0,c.hp-(impact-4)*1.6);damageCool=.65;tone(95,.13);makeNoise(c,23);if(c.hp<=0){openMenu('wreck');return}}
- }else{c.x=X;c.z=Z}
+ // Validate rotation at the old position before translating along a wall.
+ const radius=c.type===5?.33:c.type===4?1.04:.88,span=c.type===5?.65:c.type===4?2.08:1.32;
+ function blocked(x,z,heading){const f=Math.sin(heading),g=Math.cos(heading);
+  for(let i=-1;i<=1;i++){const px=x+i*span*f,pz=z+i*span*g;if(solidAt(px,pz,radius))return true;
+   for(const o of cars)if(o!==c&&o.hp>0&&Math.hypot(px-o.x,pz-o.z)<radius+(o.type===5?.4:1))return true}
+  return false
+ }
+ if(blocked(c.x,c.z,c.a))c.a=old;
+ if(blocked(c.x,c.z,old)&&throttle&&Math.abs(forward)<3){
+  // Small overlaps can happen when a streamed collider appears or a parked car moves.
+  for(const side of [0,-.45,.45]){let found=false;
+   for(let d=.15;d<=1.51;d+=.15){const x=c.x+d*(throttle*Math.sin(old)+side*Math.cos(old)),z=c.z+d*(throttle*Math.cos(old)-side*Math.sin(old));
+    if(!blocked(x,z,old)){c.x=x;c.z=z;found=true;break}}
+   if(found)break}
+ }
+ const X=c.x+c.vx*dt,Z=c.z+c.vz*dt;
+ if(!blocked(X,Z,c.a)){c.x=X;c.z=Z}
+ else{const impact=Math.hypot(c.vx,c.vz);if(session&&impact>5)strike(true);
+  if(!blocked(X,c.z,c.a)){c.x=X;c.vz=0}
+  else if(!blocked(c.x,Z,c.a)){c.z=Z;c.vx=0}
+  else{c.vx=c.vz=0;c.a=old}
+  c.v=c.vx*Math.sin(c.a)+c.vz*Math.cos(c.a)
+ }
  if(heat>0&&Math.abs(c.v)>15)makeNoise(c,16);
  if(lookIdle>1.3){lookYaw+=wrap(c.a-lookYaw)*(1-Math.exp(-(first?6.5:3.0)*dt));lookPitch=mix(lookPitch,first?-.045:-.105,1-Math.exp(-2.4*dt))}
 }
@@ -1079,7 +1100,7 @@ function sandboxAct(){
   const c=nearestRide();if(c){sendAction({t:'seat',id:c.id})}else notify('Stand beside a car with a free seat.')
 }
 function nearestRide(){let best=null,dist=4.25;for(const c of cars){const d=hyp(c,player);if(c.hp>0&&(!c.driver||!c.rider)&&d<dist&&clearLine(player,c)){best=c;dist=d}}return best}
-let nextSwing=0,swingEnd=0;
+let nextContactScan=0,nextSwing=0,swingEnd=0;
 function strike(impact=false){if(!session||!myHP||seat==='rider'||performance.now()<nextSwing)return;const a=actor(),reach=impact?5.3:3.3;
   const candidates=[...peers.filter(p=>!p.car),...streetPeople.filter(p=>p.kind!==1),...props,...cars.filter(c=>c!==car)].filter(o=>o.hp>0&&hyp(a,o)<reach&&Math.abs(wrap(yawTo(a,o)-a.a))<(impact?1.1:2.2)).sort((a1,b)=>hyp(a,a1)-hyp(a,b));
   if(!impact){swingEnd=performance.now()+200;nextSwing=performance.now()+440;notify('Swing',.25)}
@@ -1090,7 +1111,7 @@ function updateSandbox(dt){
   if(cityLoading||!myHP)return;
   if(seat==='rider'){if(car){player.x=car.x;player.z=car.z}return}
   if(!car){player.vy=(player.vy||0)-15*dt;player.y=Math.max(0,(player.y||0)+player.vy*dt);if(!player.y)player.vy=0}
-  else if(Math.abs(car.v)>5)strike(true);
+  else if(Math.abs(car.v)>5&&performance.now()>=nextContactScan){nextContactScan=performance.now()+110;strike(true)}
   movePlayer(dt);
 }
 function iconsAndTags(now){
