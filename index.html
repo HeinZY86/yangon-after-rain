@@ -318,6 +318,14 @@ function loadFacades(){
 }
 function targetBuffer(w,h,filter){let tex=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,tex);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,w,h,0,gl.RGBA,gl.UNSIGNED_BYTE,null);for(let p of [gl.TEXTURE_WRAP_S,gl.TEXTURE_WRAP_T])gl.texParameteri(gl.TEXTURE_2D,p,gl.CLAMP_TO_EDGE);for(let p of [gl.TEXTURE_MIN_FILTER,gl.TEXTURE_MAG_FILTER])gl.texParameteri(gl.TEXTURE_2D,p,filter);
  let fb=gl.createFramebuffer(),depth=gl.createRenderbuffer();gl.bindFramebuffer(gl.FRAMEBUFFER,fb);gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,tex,0);gl.bindRenderbuffer(gl.RENDERBUFFER,depth);gl.renderbufferStorage(gl.RENDERBUFFER,gl.DEPTH_COMPONENT16,w,h);gl.framebufferRenderbuffer(gl.FRAMEBUFFER,gl.DEPTH_ATTACHMENT,gl.RENDERBUFFER,depth);let valid=gl.checkFramebufferStatus(gl.FRAMEBUFFER)===gl.FRAMEBUFFER_COMPLETE;gl.bindFramebuffer(gl.FRAMEBUFFER,null);return {tex,fb,depth,w,h,valid}}
+function partitionMesh(m){
+ const groups=new Map(),src=m.a,size=48;
+ for(let k=0;k<src.length;k+=36){const x=Math.floor((src[k]+src[k+12]+src[k+24])/(3*size)),z=Math.floor((src[k+2]+src[k+14]+src[k+26])/(3*size)),id=x+','+z;
+ let group=groups.get(id);if(!group){group={x:(x+.5)*size,z:(z+.5)*size,indices:[]};groups.set(id,group)}group.indices.push(k)}
+ const packed=new Array(src.length);let offset=0;m.spans=[];
+ for(const g of groups.values()){const first=offset/12;for(const k of g.indices)for(let j=0;j<36;j++)packed[offset++]=src[k+j];m.spans.push({x:g.x,z:g.z,first,count:offset/12-first})}
+ m.a=packed;return m
+}
 function upload(m){m.buf=gl.createBuffer();m.count=m.a.length/12;gl.bindBuffer(gl.ARRAY_BUFFER,m.buf);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(m.a),gl.STATIC_DRAW);m.a.length=0;return m}
 let enabled=[];function attrs(p,layout,stride){let next=[];for(let [name,n,offset] of layout){let k=p.a[name];if(k===undefined)continue;gl.enableVertexAttribArray(k);gl.vertexAttribPointer(k,n,gl.FLOAT,false,stride*4,offset*4);next.push(k)}for(let k of enabled)if(!next.includes(k))gl.disableVertexAttribArray(k);enabled=next}
 const layout=[['P',3,0],['N',3,3],['C',3,6],['UV',2,9],['M',1,11]];
@@ -325,7 +333,7 @@ function initGL(){
  gl=sceneCanvas.getContext('webgl',{alpha:false,antialias:true,preserveDrawingBuffer:false,powerPreference:'high-performance'});if(!gl)throw Error('WebGL is unavailable');
  mainProg=program(vsMain,fsMain);skyProg=program(vsSky,fsSky);depthProg=program(vsDepth,fsDepth);pointProg=program(vsPoints,fsPoints);atlas=makeAtlas();facadeTex=loadFacades();
  quadBuffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,quadBuffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);pointBuffer=gl.createBuffer();
- [city,ground,skyline,...propMeshes,suleMesh,shwedagonMesh,cityHallMesh,...carMeshes,...rigs.flat(),contact,dashMesh,goalMesh].forEach(upload);shadow=targetBuffer(1536,1536,gl.NEAREST);
+ partitionMesh(city);partitionMesh(ground);[city,ground,skyline,...propMeshes,remoteIdle,suleMesh,shwedagonMesh,cityHallMesh,...carMeshes,...rigs.flat(),contact,dashMesh,goalMesh].forEach(upload);shadow=targetBuffer(1536,1536,gl.NEAREST);
  if(shadow.valid){gl.bindFramebuffer(gl.FRAMEBUFFER,shadow.fb);gl.viewport(0,0,shadow.w,shadow.h);gl.clearColor(1,1,1,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.enable(gl.DEPTH_TEST);gl.useProgram(depthProg.p);gl.bindBuffer(gl.ARRAY_BUFFER,city.buf);attrs(depthProg,[['P',3,0]],12);gl.drawArrays(gl.TRIANGLES,0,city.count);gl.bindFramebuffer(gl.FRAMEBUFFER,null)}
  resize()
 }
@@ -334,7 +342,11 @@ function resize(){width=innerWidth;height=innerHeight;if(!gl)return;let s=Math.m
 function basis(ref=false){let sy=Math.sin(view.yaw),cy=Math.cos(view.yaw),sp=Math.sin(view.pitch),cp=Math.cos(view.pitch),s=ref?-1:1,l=1/Math.tan(view.fov*PI/360);return {eye:[view.x,view.y*s,view.z],right:[cy,0,-sy],up:[-sy*sp,cp*s,-cy*sp],forward:[sy*cp,sp*s,cy*cp],lens:[l*height/width,l]}}
 function uniforms(p,b){for(let k of ['eye','right','up','forward'])if(p.u[k])gl.uniform3fv(p.u[k],b[k]);if(p.u.lens)gl.uniform2fv(p.u.lens,b.lens)}
 function bindTex(i,t){gl.activeTexture(gl.TEXTURE0+i);gl.bindTexture(gl.TEXTURE_2D,t)}
-function draw(m,x=0,y=0,z=0,a=0,pitch=0,tint=[1,1,1]){gl.bindBuffer(gl.ARRAY_BUFFER,m.buf);attrs(mainProg,layout,12);gl.uniform4f(mainProg.u.model,x,y,z,a);gl.uniform1f(mainProg.u.tilt,pitch);gl.uniform3fv(mainProg.u.tint,tint);gl.drawArrays(gl.TRIANGLES,0,m.count)}
+function draw(m,x=0,y=0,z=0,a=0,pitch=0,tint=[1,1,1]){gl.bindBuffer(gl.ARRAY_BUFFER,m.buf);attrs(mainProg,layout,12);gl.uniform4f(mainProg.u.model,x,y,z,a);gl.uniform1f(mainProg.u.tilt,pitch);gl.uniform3fv(mainProg.u.tint,tint);if(!m.spans){gl.drawArrays(gl.TRIANGLES,0,m.count);return}
+ const sy=Math.sin(view.yaw),cy=Math.cos(view.yaw),far=quality<.6?145:215;
+ for(const g of m.spans){const dx=g.x-view.x,dz=g.z-view.z,along=sy*dx+cy*dz,side=Math.abs(cy*dx-sy*dz);
+ if(along>=-45&&along<=far+40&&side<Math.max(0,along)*Math.max(1.1,width/height)+54)gl.drawArrays(gl.TRIANGLES,g.first,g.count)}
+ }
 function visible(x,z,r=4,max=120){let dx=x-view.x,dz=z-view.z,d=Math.hypot(dx,dz);return d<max&&(d<9||dx*Math.sin(view.yaw)+dz*Math.cos(view.yaw)>-r)}
 function drawHuman(p,model){
  if(!visible(p.x,p.z,2,70))return;
@@ -360,7 +372,10 @@ function pieces(ref){
  if(session){for(const p of props)if(p.hp>0&&visible(p.x,p.z))draw(propMeshes[p.kind],p.x,.13,p.z,p.a);
  if(geoActive()&&visible(-895,2468,60,400))draw(shwedagonMesh,-895,.15,2468);if(geoActive()&&visible(169,-29,38,300))draw(cityHallMesh,169,.18,-29);if(geoActive()&&visible(.00035*106600,-.00123*110650,25,250))draw(suleMesh,.00035*106600,1,-.00123*110650)}
  for(let p of people)drawHuman(p,rigs[p.skin]);for(let p of guards)drawHuman(p,rigs[1]);
- for(let p of peers)if(!p.car&&p.hp>0)drawHuman(p,rigs[2]);if(mode==='play'&&!car&&myHP>0&&(!first||ref))drawHuman(player,rigs[0]);
+ let detailed=0;for(let p of peers)if(!p.car&&p.hp>0&&visible(p.x,p.z,2,75)){
+ if(p.moving&&hyp(p,view)<17&&detailed<3){drawHuman(p,rigs[2]);detailed++}
+ else draw(remoteIdle,p.x,walkHeight(p.x,p.z)+(p.y||0),p.z,p.a)
+ }if(mode==='play'&&!car&&myHP>0&&(!first||ref))drawHuman(player,rigs[0]);
  if(!ref&&mode==='play'&&car&&first)draw(dashMesh,car.x,carHeight(car),car.z,car.a,0,car.color);
  const goal=goalPos();if(mode==='play'&&goal&&!ref&&visible(goal.x,goal.z,4,106)){draw(goalMesh,goal.x,.25,goal.z,clock*.55)}
 }
@@ -385,6 +400,9 @@ function buildModels(){createCity();
  for(let n=0;n<8;n++){let a=n*Math.PI/4,x=23*Math.cos(a),z=23*Math.sin(a);shwedagonMesh.tube([x,0,z],[x,9,z],3,.12,'#cda147',0,8)}
  cityHallMesh.box(0,0,0,56,13,26,'#d5d8ca',3);cityHallMesh.box(0,13,0,57,.7,27,'#ebdfc4');
  for(let x of [-22,0,22]){cityHallMesh.box(x,12,0,10,5,17,'#e0d9bd',3);cityHallMesh.tube([x,17,0],[x,21,0],6,1.6,'#7c877d',0,4)}
+ remoteIdle=new Mesh();
+ remoteIdle.box(0,.80,0,.40,.59,.25,'#71877c');remoteIdle.tube([0,1.41,0],[0,1.67,0],.123,.111,'#bb9071',0,8);remoteIdle.box(0,1.64,0,.23,.06,.22,'#353b38');
+ for(const side of [-1,1]){remoteIdle.box(side*.105,.09,0,.14,.77,.17,'#434c50');remoteIdle.box(side*.105,.015,.036,.16,.09,.24,'#333c3d');remoteIdle.tube([side*.22,1.35,0],[side*.25,.88,.035],.072,.048,'#9b8068',0,5)}
  suleMesh=new Mesh();const tier=[[0,8.8],[2.4,8.1],[3.6,6.5],[5.2,5.2],[8,4.5],[12,3.15],[16,1.9],[19,.85],[24,.1]];
  for(let i=1;i<tier.length;i++){const [y,r]=tier[i-1],[h,R]=tier[i];suleMesh.tube([0,y,0],[0,h,0],r,R,'#dab24d',0,12)}
  for(let i=0;i<4;i++)carMeshes.push(carMesh(i));
@@ -679,7 +697,8 @@ sceneCanvas.addEventListener('dblclick',()=>{if(mode==='play'&&!panel&&sceneCanv
 function frame(now){if(!ready)return;iconsAndTags(now);if(geoActive()&&now>nextTiles){nextTiles=now+900;const p=actor();loadAround(p.x,p.z).catch(()=>notify('Loading the next streets…',2))}let raw=(now-(previous||now))/1000;previous=now;let dt=Math.min(.068,raw);
  if(!panel){clock+=dt;if(mode==='play'){elapsed+=dt;let steps=Math.max(1,Math.ceil(dt*54));for(let i=0;i<steps&&!panel;i++)simulation(dt/steps);msgTime-=dt;if(msgTime<0)$('msg').hidden=true;nextHud-=dt;if(nextHud<=0){hud();nextHud=.12}}
   for(let p of peers){let k=1-Math.exp(-14*dt);p.x=mix(p.x,p.tx,k);p.z=mix(p.z,p.tz,k);if(p.moving)p.walk+=dt*8}camera(dt);render();marker();
-  if(raw>.048&&raw<.22&&frameNo>45)slowTime+=Math.min(raw,.1);else slowTime=Math.max(0,slowTime-.018);if(slowTime>4&&quality>.68&&!autoQuality){quality=.66;resize();slowTime=0}
+  if(raw>.052&&raw<2&&frameNo>8)slowTime+=Math.min(raw,.4);else slowTime=Math.max(0,slowTime-.04);
+ if(slowTime>2.5&&quality>.50&&!autoQuality){quality=quality>.68?.65:.49;resize();slowTime=0}
  }else if(!pausedDraw){render();pausedDraw=true}
  if(sound&&eng){let on=mode==='play'&&!panel&&!!car,v=on?Math.abs(car.v):0;level.gain.setTargetAtTime(on?.06+v*.002:0,audioCtx.currentTime,.06);eng.frequency.setTargetAtTime(39+v*2.5,audioCtx.currentTime,.055)}
  requestAnimationFrame(frame)
@@ -749,8 +768,9 @@ class StreetWorld {
 
 let session=null,peers=[],claimed=new Set(),peer=null,hostLink=null,authority=null,localId='',worldId='',linkSerial=0;
 let myHP=100,myLife=0,seat='',parkedId='',lastChat=0,chatOpen=false,connecting=false,mapCatalogue=null;
+let hostLastSeen=0,guestPing=0;
 const clients=new Map(),props=[],tagNodes=new Map();
-let propMeshes=[],suleMesh,shwedagonMesh,cityHallMesh,frameRate=0,frames=0,perfStart=0,worldTimer=0,peerLoader=null;
+let remoteIdle,propMeshes=[],suleMesh,shwedagonMesh,cityHallMesh,frameRate=0,frames=0,perfStart=0,worldTimer=0,peerLoader=null;
 const linkBase='yangon-rain-v2-', maxClients=20;
 function displayName(){try{return localStorage.getItem('yangon-nickname')||'Explorer'}catch{return 'Explorer'}}
 function textNotice(s){$('connectNote').textContent=s;if(mode==='play')notify(s,4)}
@@ -808,10 +828,15 @@ function applyState(m){
 }
 function tickWorld(){
   if(!session)return;
+  const now=Date.now();
+  if(!authority&&hostLink){
+    if(hostLastSeen&&now-hostLastSeen>30000){failWorld('The host stopped responding. Start a new world or open another invite.');return}
+    if(now-guestPing>1800){guestPing=now;sendAction({t:'ping'})}
+  }
   if(myHP&&seat!=='rider')sendAction(ownMove());
   if(!authority)return;authority.tick(Date.now());
   const packet=authority.snapshot();applyState(packet);
-  for(const [id,c] of clients){if(!c.open)continue;if((c.dataChannel?.bufferedAmount||0)>65536){c.needsFull=true;continue}
+  for(const [id,c] of clients){if(!c.open||now-c.lastSeen>22000){clients.delete(id);authority.leave(id);c.close();continue}if((c.dataChannel?.bufferedAmount||0)>65536){c.needsFull=true;continue}
     try{c.send(c.needsFull?authority.snapshot(true):packet);c.needsFull=false}catch{c.close();clients.delete(id);authority.leave(id)}}
   authority.flushed();
 }
@@ -836,14 +861,14 @@ function createTransport(id){
 }
 function acceptConnection(c){
   if(!authority||c.metadata?.v!==2||clients.size>=24){c.on('open',()=>{c.send({t:'reject',why:'Unavailable world or game version.'});setTimeout(()=>c.close(),250)});return}
-  const world=authority;let admitted=false,messages=0,last=Date.now();
+  const world=authority;let admitted=false,messages=0,last=Date.now();c.lastSeen=last;
   const admit=()=>{
     if(admitted)return;
     if(authority!==world||!world.join(c.peer,c.metadata?.name)){c.send({t:'reject',why:'World full · 20 / 20 players'});setTimeout(()=>c.close(),350);return}
-    admitted=true;clients.set(c.peer,c);
+    admitted=true;c.lastSeen=Date.now();clients.set(c.peer,c);
     c.send({t:'welcome',geo:geoActive(),initial:world.snapshot(true)});
   };if(c.open)admit();else c.once('open',admit);
-  c.on('data',m=>{if(!admitted||world!==authority)return;const now=Date.now();if(now-last>=1000){last=now;messages=0}if(++messages>45)return;world.update(c.peer,m,now)});
+  c.on('data',m=>{if(!admitted||world!==authority)return;const now=Date.now();c.lastSeen=now;if(now-last>=1000){last=now;messages=0}if(++messages>45)return;world.update(c.peer,m,now)});
   const gone=()=>{if(admitted&&clients.get(c.peer)===c){clients.delete(c.peer);world.leave(c.peer)}};c.on('close',gone);c.on('error',gone);
 }
 async function enterWorld(kind,target=''){
@@ -861,7 +886,7 @@ async function enterWorld(kind,target=''){
         worldId=target;const c=transport.connect(target,{reliable:true,serialization:'json',metadata:{v:2,name:displayName()}});hostLink=c;
         let latest=null,received=false;
         const hello=await timed(new Promise((resolve,reject)=>{
-          c.on('data',m=>{if(!m||epoch!==linkSerial)return;if(m.t==='reject')reject(Error(m.why));else if(m.t==='welcome'){received=true;resolve(m)}else if(m.t==='state'){if(session)applyState(m);else latest=m}});
+          c.on('data',m=>{if(!m||epoch!==linkSerial)return;hostLastSeen=Date.now();if(m.t==='reject')reject(Error(m.why));else if(m.t==='welcome'){received=true;resolve(m)}else if(m.t==='state'){if(session)applyState(m);else latest=m}});
           c.on('close',()=>{if(epoch!==linkSerial)return;if(received)failWorld('The host left. Enter World to start another.');else reject(Error('The host is unavailable.'))});
           c.on('error',()=>{if(epoch!==linkSerial)return;if(received)failWorld('Connection to host lost.');else reject(Error('Could not reach the host.'))});
         }),19000,'Could not reach the host. A restrictive network may require TURN.');
@@ -968,7 +993,7 @@ function buildCell(data,i,j) {
     roadStrip(mesh,points,width,y,width<3?'#a59f8c':'#54585b');
     if(width>=8)roadStrip(mesh,points,.14,y+.013,'#dfc68b',true);
   }
-  return {mesh:upload(mesh),data,obstacles,i,j};
+  return {mesh:upload(partitionMesh(mesh)),data,obstacles,i,j};
 }
 async function loadCell(i,j) {
   const key=i+'_'+j;
