@@ -33,9 +33,30 @@ jobs:
           if [ -f peerjs.min.js ]; then cp peerjs.min.js public/; fi
           if [ -f peerjs-LICENSE ]; then cp peerjs-LICENSE public/; fi
       - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+      - id: site
+        uses: actions/upload-pages-artifact@v3
         with:
           path: public
       - name: Publish
         id: deploy
-        uses: actions/deploy-pages@v4
+        uses: actions/github-script@v7
+        env:
+          PAGES_ARTIFACT_ID: ${{ steps.site.outputs.artifact_id }}
+        with:
+          script: |
+            const artifact_id = Number(process.env.PAGES_ARTIFACT_ID)
+            if (!Number.isSafeInteger(artifact_id) || artifact_id <= 0) throw Error('Missing uploaded Pages artifact ID')
+            const repo = context.repo
+            const { data } = await github.request('POST /repos/{owner}/{repo}/pages/deployments', {
+              ...repo, artifact_id, pages_build_version: context.sha, oidc_token: await core.getIDToken()
+            })
+            core.setOutput('page_url', data.page_url)
+            for (let attempt = 0; attempt < 120; attempt++) {
+              const result = await github.request('GET /repos/{owner}/{repo}/pages/deployments/{pages_deployment_id}', {
+                ...repo, pages_deployment_id: data.id
+              })
+              if (result.data.status === 'succeed') return
+              if (['errored','failed','cancelled','deployment_failed','deployment_content_failed'].includes(result.data.status)) throw Error(result.data.status)
+              await new Promise(resolve => setTimeout(resolve, 5000))
+            }
+            throw Error('Deployment status timed out')
