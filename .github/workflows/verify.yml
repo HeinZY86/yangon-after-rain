@@ -1,0 +1,17 @@
+name: Browser QA
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [index.html, qa.mjs, rules-test.cjs, .github/workflows/verify.yml]
+permissions:
+  contents: read
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - run: node rules-test.cjs
+      - run: npm install --no-save --ignore-scripts playwright@1.56.1 peer@1.0.2 peerjs@1.5.4
+      - run: node qa.mjs
