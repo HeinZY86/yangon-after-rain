@@ -11,16 +11,17 @@ const srv=http.createServer((req,res)=>{if(req.url==='/sdk'){res.setHeader('Cont
 await new Promise(r=>srv.listen(8382,'127.0.0.1',r));
 const browser=await chromium.launch({channel:'chrome',headless:true,args:['--enable-unsafe-swiftshader','--use-angle=swiftshader','--autoplay-policy=no-user-gesture-required','--disable-background-timer-throttling','--disable-renderer-backgrounding','--disable-backgrounding-occluded-windows']});
 const errors=[];
+signal.on('connection',()=>console.log('local signal connection'));
 const context=await browser.newContext({viewport:{width:900,height:620},permissions:['clipboard-read','clipboard-write']});
-await context.route('**/peerjs@*/dist/peerjs.min.js',route=>route.fulfill({contentType:'text/javascript',body:Buffer.concat([sdk,Buffer.from(";window.Peer=new Proxy(window.Peer,{construct(Target,[id,opts]){return new Target(id,{...opts,host:'127.0.0.1',port:9000,path:'/qa',secure:false,config:{iceServers:[]}})}});")])}));
+await context.route('**/peerjs@*/dist/peerjs.min.js',route=>route.fulfill({contentType:'text/javascript',body:Buffer.concat([sdk,Buffer.from("\n;window.Peer=new Proxy(window.Peer,{construct(Target,[id,opts]){return new Target(id,{...opts,host:'127.0.0.1',port:9000,path:'/qa',secure:false,config:{iceServers:[]}})}});")])}));
 async function page(url){
-  const p=await context.newPage();p.on('pageerror',e=>errors.push(e.message));await p.goto(url);return p;
+  const p=await context.newPage();p.on('pageerror',e=>{errors.push(e.message);console.log('PAGE ERROR',e.message)});p.on('console',m=>{if(m.type()==='error'&&!m.text().includes('resource'))console.log('BROWSER',m.text())});await p.goto(url);return p;
 }
 const wait=(p,f,arg)=>p.waitForFunction(f,arg,{timeout:40000});
 const url='http://127.0.0.1:8382/';
 try{
   const a=await page(url);await a.getByRole('button',{name:/Enter World/}).click();
-  await wait(a,()=>document.querySelector('#presence').textContent==='1 / 20 online');await a.getByRole('button',{name:'Invite',exact:true}).click();const invite=await a.evaluate(()=>navigator.clipboard.readText());
+  await wait(a,()=>document.querySelector('#presence').textContent==='1 / 20 online');await a.getByRole('button',{name:'Invite',exact:true}).click();const invite=await a.getByRole('textbox',{name:'World link'}).inputValue();await a.getByRole('button',{name:'Back to the street',exact:true}).click();
   assert.ok(invite.includes('#world=yangon-rain-v2-'));
   const b=await page(invite);await wait(b,()=>document.querySelector('#presence').textContent==='2 / 20 online');
   await wait(a,()=>document.querySelector('#presence').textContent==='2 / 20 online');console.log('PASS two actual WebRTC clients joined via invite');
@@ -30,7 +31,7 @@ try{
   await wait(a,x=>actor().z>x+.2,before);await wait(b,x=>actor().z>x+.1,before);
   const motion=await a.evaluate(()=>({speed:Math.hypot(car.vx,car.vz),position:car.z}));assert.ok(motion.speed>0);console.log('PASS shared seats, driving sync, coasting',JSON.stringify(motion));
   await resume(a);await a.keyboard.down('Space');await wait(a,()=>Math.hypot(car.vx,car.vz)<.3);await a.keyboard.up('Space');console.log('PASS braking to rest');
-  await b.getByRole('button',{name:'Chat',exact:true}).click();await b.getByRole('textbox',{name:'Chat message'}).fill('tea shop meetup');await b.getByRole('textbox',{name:'Chat message'}).press('Enter');await a.getByText(/Explorer · tea shop meetup/).waitFor();console.log('PASS WebRTC chat');
+  await resume(b);await b.getByRole('button',{name:'Chat',exact:true}).click();await b.getByRole('textbox',{name:'Chat message'}).fill('tea shop meetup');await b.getByRole('textbox',{name:'Chat message'}).press('Enter');await a.getByText(/Explorer · tea shop meetup/).waitFor();console.log('PASS WebRTC chat');
   await b.close();await wait(a,()=>document.querySelector('#presence').textContent==='1 / 20 online');console.log('PASS disconnect releases passenger');
   // Connection-only guests run in one Chrome renderer. Each has its own Peer and RTCPeerConnection.
   const q=await context.newPage();await q.goto(url+'peers');
@@ -38,7 +39,7 @@ try{
     const clients=[];let accepted=0,rejected=0;
     async function join(i){return new Promise((resolve,reject)=>{
       const timeout=setTimeout(()=>reject(Error('client '+i+' timeout')),20000);
-      const p=new Peer(undefined,{host:'127.0.0.1',port:9000,path:'/qa',secure:false,config:{iceServers:[]}});clients.push(p);
+      const p=new Peer('test-'+crypto.randomUUID(),{host:'127.0.0.1',port:9000,path:'/qa',secure:false,config:{iceServers:[]}});clients.push(p);
       p.on('error',reject);p.on('open',()=>{const c=p.connect(host,{reliable:true,serialization:'json',metadata:{v:2,name:'QA '+i}});c.on('data',m=>{if(m.t==='welcome'){accepted++;clearTimeout(timeout);resolve()}else if(m.t==='reject'){rejected++;clearTimeout(timeout);resolve()}})});
     })}
     for(let i=1;i<=20;i++)await join(i);window.testClients=clients;return {accepted,rejected}
@@ -49,4 +50,4 @@ try{
   const mobile=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,deviceScaleFactor:1});
   const phone=await mobile.newPage();phone.on('pageerror',e=>errors.push(e.message));await phone.goto(url);await phone.getByRole('button',{name:'Play Offline'}).tap();await phone.locator('[data-key="Space"]').tap();await wait(phone,()=>player.y>0);await phone.getByRole('button',{name:'Open district map'}).tap();await phone.getByRole('heading',{name:'Downtown street map'}).waitFor();await mobile.close();console.log('PASS emulated touch, offline mode, jump, minimap');
   assert.deepEqual(errors,[]);console.log('PASS no uncaught JavaScript errors');
-}finally{await browser.close();srv.close();process.exitCode??=0;setTimeout(()=>process.exit(process.exitCode||0),300).unref();signal._wss?.close?.()}
+}catch(e){for(const p of context.pages())console.log('Diagnostic',await p.evaluate(()=>({note:document.querySelector('#connectNote')?.textContent,presence:document.querySelector('#presence')?.textContent,fallback:document.querySelector('#fallback')?.hidden,peer:typeof peer==='undefined'?null:peer?.open,mode:typeof mode==='undefined'?null:mode,dialog:document.querySelector('#mtitle')?.textContent,seat:typeof seat==='undefined'?null:seat})).catch(()=>null));console.log('Errors',errors);throw e}finally{await browser.close();srv.close();process.exitCode??=0;setTimeout(()=>process.exit(process.exitCode||0),300).unref();signal._wss?.close?.()}

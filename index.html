@@ -6,7 +6,7 @@
 @media(max-aspect-ratio:4/5){#home{background:linear-gradient(0deg,#0c191efc 0%,#0c191ecc 35%,#0c191e11 78%)}.copy{top:auto;bottom:9%;width:87%;transform:none}.topline{top:6%;font-size:9px}.copy p{margin:14px 0 18px}.prompt{max-width:80%}.task{max-width:68%}h1{font-size:clamp(65px,15vw,105px)}}
 @media(max-height:490px) and (orientation:landscape){.topline{top:4%}.copy{top:50%;transform:translateY(-40%)}h1{font-size:58px;margin:8px 0}.copy p{margin:8px 0}.homefoot{display:none}.task{top:40px}.mapcard{width:100px}.mapcard button{height:54px}.msg{top:35%}.sheet{padding:13px}}
 body.online .task,body.online #heat,body.online .unusedAction{display:none}.online .location{background:#112b2bd9;border:1px solid #83bba24d;border-radius:6px;padding:9px 13px;color:#f1e8cd;max-width:46vw}.online .mapcard{border-color:#8ecab26b;border-radius:12px;overflow:hidden}.online .mapcard button{border-radius:0}.online .info strong{font-variant-numeric:tabular-nums;font-size:clamp(26px,4.4vw,55px);color:#feecd1}.online .info{background:#112526d9;border-radius:9px;padding:6px 14px}.online .info br{display:none}.online .keys{opacity:.8}.online #roomTools{background:#244a41;color:#dbffec}.online .readout{background:#132e2b}.travel{display:flex;align-items:center;gap:10px;margin:10px 0}.travel select,#roomCode{background:#19332e;color:#f4e8c9;border:1px solid #698579;border-radius:6px;padding:10px}.sheet{max-height:88dvh;overflow:auto}.map-credit{display:none}.online .map-credit{display:block;position:fixed;bottom:2px;left:6px;font:10px system-ui;color:#e6eadb;background:#122421cb;padding:2px 4px;z-index:5}.map-credit a{color:inherit}.online #bigmap{height:min(42vh,360px)}@media(max-width:660px){.online .location{top:54px}.toolbar{max-width:100vw}.online .keys{display:none}}
-#sessionHUD{display:none}.playing #sessionHUD{display:flex;position:absolute;left:16px;top:52px;gap:5px;pointer-events:none}#sessionHUD span,.nametag,#chatFeed div{font:600 11px system-ui;color:#edf5e8;background:#162c2bdd;border-radius:4px;padding:4px 8px}#health{color:#a8e4c4!important}.nametag{position:absolute;top:0;left:0;pointer-events:none;white-space:nowrap}#tags{position:absolute;inset:0;pointer-events:none;overflow:hidden}#chatFeed{position:absolute;bottom:130px;right:14px;max-width:min(270px,48vw);pointer-events:none;overflow-wrap:anywhere}#chatFeed div{margin:2px}#chatForm{position:absolute;z-index:12;left:50%;bottom:80px;transform:translateX(-50%);background:#122b29;padding:6px;border-radius:7px;display:flex}#chatForm input,#nickname{background:#233d38;color:#fff;border:1px solid #668276;padding:9px;border-radius:4px}#chatForm button{background:#accab3;color:#15362a;border:0}.actions{flex-wrap:wrap}.playing .location{max-width:47vw}.online .task{display:none}.online #health:empty{display:none}#connectNote:empty{display:none}#connectNote{font-size:13px;color:#ffd58a}.online .map-credit{bottom:1px}.sheet #bigmap{width:100%;height:min(43vh,340px)}@media(max-width:740px){.playing #sessionHUD{left:10px;top:89px}.playing .toolbar{gap:3px}.playing .toolbar button{font-size:9px}.online #chatFeed{bottom:180px}.playing .info{bottom:114px}}
+#sessionHUD{display:none}.playing #sessionHUD{display:flex;position:absolute;left:16px;top:52px;gap:5px;pointer-events:none}#sessionHUD span,.nametag,#chatFeed div{font:600 11px system-ui;color:#edf5e8;background:#162c2bdd;border-radius:4px;padding:4px 8px}#health{color:#a8e4c4!important}.nametag{position:absolute;top:0;left:0;pointer-events:none;white-space:nowrap}#tags{position:absolute;inset:0;pointer-events:none;overflow:hidden}#chatFeed{position:absolute;bottom:130px;right:14px;max-width:min(270px,48vw);pointer-events:none;overflow-wrap:anywhere}#chatFeed div{margin:2px}#chatForm{position:absolute;z-index:12;left:50%;bottom:80px;transform:translateX(-50%);background:#122b29;padding:6px;border-radius:7px;display:flex}#chatForm input,#nickname,#shareURL{background:#233d38;color:#fff;border:1px solid #668276;padding:9px;border-radius:4px}#chatForm button{background:#accab3;color:#15362a;border:0}.actions{flex-wrap:wrap}.playing .location{max-width:47vw}.online .task{display:none}.online #health:empty{display:none}#connectNote:empty{display:none}#connectNote{font-size:13px;color:#ffd58a}.online .map-credit{bottom:1px}.sheet #bigmap{width:100%;height:min(43vh,340px)}@media(max-width:740px){.playing #sessionHUD{left:10px;top:89px}.playing .toolbar{gap:3px}.playing .toolbar button{font-size:9px}.online #chatFeed{bottom:180px}.playing .info{bottom:114px}}
 </style></head><body>
 <canvas id="scene" tabindex="0" aria-label="3D street scene"></canvas><div id="shade"></div>
 <section id="home"><div class="topline caps"><i class="mark"></i> YANGON AFTER RAIN</div><div class="copy"><div class="caps kicker">MYANMAR &nbsp; / &nbsp; YANGON</div><h1>YANGON</h1><div class="sub">After Rain</div><p>Walk the streets, share a ride or start a friendly scrap. Invite your friends to your own Yangon world.</p><div class="actions"><button class="button primary" id="roomBtn">Enter World ↗</button><button class="button" id="joinBtn">Join Friend</button><button class="button" id="roam">Play Offline</button><button class="button" id="settingsBtn">Settings</button></div><p id="connectNote" role="status"></p></div><div class="homefoot">YANGON ONLINE &nbsp; / &nbsp; FIRST & THIRD PERSON</div></section>
@@ -325,7 +325,7 @@ function initGL(){
  gl=sceneCanvas.getContext('webgl',{alpha:false,antialias:true,preserveDrawingBuffer:false,powerPreference:'high-performance'});if(!gl)throw Error('WebGL is unavailable');
  mainProg=program(vsMain,fsMain);skyProg=program(vsSky,fsSky);depthProg=program(vsDepth,fsDepth);pointProg=program(vsPoints,fsPoints);atlas=makeAtlas();facadeTex=loadFacades();
  quadBuffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,quadBuffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);pointBuffer=gl.createBuffer();
- [city,ground,skyline,...propMeshes,suleMesh,...carMeshes,...rigs.flat(),contact,dashMesh,goalMesh].forEach(upload);shadow=targetBuffer(1536,1536,gl.NEAREST);
+ [city,ground,skyline,...propMeshes,suleMesh,shwedagonMesh,cityHallMesh,...carMeshes,...rigs.flat(),contact,dashMesh,goalMesh].forEach(upload);shadow=targetBuffer(1536,1536,gl.NEAREST);
  if(shadow.valid){gl.bindFramebuffer(gl.FRAMEBUFFER,shadow.fb);gl.viewport(0,0,shadow.w,shadow.h);gl.clearColor(1,1,1,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.enable(gl.DEPTH_TEST);gl.useProgram(depthProg.p);gl.bindBuffer(gl.ARRAY_BUFFER,city.buf);attrs(depthProg,[['P',3,0]],12);gl.drawArrays(gl.TRIANGLES,0,city.count);gl.bindFramebuffer(gl.FRAMEBUFFER,null)}
  resize()
 }
@@ -358,7 +358,7 @@ function pieces(ref){
  if(!ref){if(!geoActive())draw(ground);gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.depthMask(false);for(let c of cars)if(c.hp>0&&visible(c.x,c.z))draw(contact,c.x,.047,c.z,c.a);gl.depthMask(true);gl.disable(gl.BLEND)}
  for(let c of cars)if(c.hp>0&&visible(c.x,c.z)&&!(mode==='play'&&car===c&&first&&!ref))draw(carMeshes[c.type],c.x,carHeight(c),c.z,c.a,0,c.color);
  if(session){for(const p of props)if(p.hp>0&&visible(p.x,p.z))draw(propMeshes[p.kind],p.x,.13,p.z,p.a);
- if(geoActive()&&visible(.00035*106600,-.00123*110650,25,250))draw(suleMesh,.00035*106600,1,-.00123*110650)}
+ if(geoActive()&&visible(-895,2468,60,400))draw(shwedagonMesh,-895,.15,2468);if(geoActive()&&visible(169,-29,38,300))draw(cityHallMesh,169,.18,-29);if(geoActive()&&visible(.00035*106600,-.00123*110650,25,250))draw(suleMesh,.00035*106600,1,-.00123*110650)}
  for(let p of people)drawHuman(p,rigs[p.skin]);for(let p of guards)drawHuman(p,rigs[1]);
  for(let p of peers)if(!p.car&&p.hp>0)drawHuman(p,rigs[2]);if(mode==='play'&&!car&&myHP>0&&(!first||ref))drawHuman(player,rigs[0]);
  if(!ref&&mode==='play'&&car&&first)draw(dashMesh,car.x,carHeight(car),car.z,car.a,0,car.color);
@@ -379,6 +379,12 @@ function buildModels(){createCity();
  const lampModel=new Mesh(),crate=new Mesh();lampModel.tube([0,0,0],[0,5.3,0],.12,.075,'#637579',0,6);
  lampModel.box(.52,5.25,0,1.2,.13,.14,'#667679');lampModel.box(.97,5.21,0,.48,.07,.33,'#ffe3a0',2);
  crate.box(0,0,0,1.15,.85,.86,'#976b45',8);crate.box(0,.12,.44,1.18,.12,.07,'#b48c59');crate.box(0,.60,.44,1.18,.12,.07,'#b48c59');propMeshes=[lampModel,crate];
+ shwedagonMesh=new Mesh();cityHallMesh=new Mesh();
+ const pagoda=[[0,24],[3,22],[7,18],[10,15],[15,12],[23,9],[34,5],[44,2],[53,.55],[56,.12]];
+ for(let i=1;i<pagoda.length;i++){const [y,r]=pagoda[i-1],[h,R]=pagoda[i];shwedagonMesh.tube([0,y,0],[0,h,0],r,R,'#dcaf4d',0,20)}
+ for(let n=0;n<8;n++){let a=n*Math.PI/4,x=23*Math.cos(a),z=23*Math.sin(a);shwedagonMesh.tube([x,0,z],[x,9,z],3,.12,'#cda147',0,8)}
+ cityHallMesh.box(0,0,0,56,13,26,'#d5d8ca',3);cityHallMesh.box(0,13,0,57,.7,27,'#ebdfc4');
+ for(let x of [-22,0,22]){cityHallMesh.box(x,12,0,10,5,17,'#e0d9bd',3);cityHallMesh.tube([x,17,0],[x,21,0],6,1.6,'#7c877d',0,4)}
  suleMesh=new Mesh();const tier=[[0,8.8],[2.4,8.1],[3.6,6.5],[5.2,5.2],[8,4.5],[12,3.15],[16,1.9],[19,.85],[24,.1]];
  for(let i=1;i<tier.length;i++){const [y,r]=tier[i-1],[h,R]=tier[i];suleMesh.tube([0,y,0],[0,h,0],r,R,'#dab24d',0,12)}
  for(let i=0;i<4;i++)carMeshes.push(carMesh(i));
@@ -616,7 +622,7 @@ function hud(){if(mode!=='play')return;let t=task(),a=actor(),g=goalPos();$('dis
  let prompt='';if(!car&&t?.kind==='foot'&&d<4)prompt='E · Take the master reel';else if(!car){let near=nearCar();if(near)prompt=near.driver?'E · Ride as passenger':'E · '+(near.owned?'Enter ':'Take ')+CAR_NAMES[near.type]}
  if(t?.p&&d<5&&t.kind!=='foot'){if(t.id&&car?.id!==t.id)prompt='Bring the marked '+(t.id==='van'?'relay van':'Kestrel');else if(t.kind==='deliver'&&heat>0)prompt='Handoff closed during a search';else if(car&&Math.abs(car.v)>2.4)prompt='Slow down inside the ring';else if(t.kind==='broadcast')prompt='On air · '+Math.min(100,Math.floor(progress/4*100))+'%'}
  if(capture>.3)prompt=car?'Drive away before the cruiser boxes you in':shoveCool<=0?'F · Push the guard away':'Move away from the guard';
- if(session&&car)prompt=seat==='rider'?'Passenger · E to leave':Math.abs(car.v)<1?'W to drive · E to leave':'';$('prompt').textContent=prompt;$('prompt').hidden=!prompt;if(geoActive()){$('district').textContent=cityStreet(a);$('account').textContent='ONLINE';$('unit').textContent=car?'KM/H':'ON FOOT'}mapDraw($('mini'),false)
+ if(session&&car)prompt=seat==='rider'?'Passenger · E to leave':Math.abs(car.v)<1?'W to drive · E to leave':'';$('prompt').textContent=prompt;$('prompt').hidden=!prompt;if(geoActive()){$('district').textContent=cityStreet(a);$('account').textContent=session.online?'ONLINE':'SOLO';$('unit').textContent=car?'KM/H':'ON FOOT'}mapDraw($('mini'),false)
 }
 function marker(){let el=$('marker'),q=goalPos();if(mode!=='play'||panel||!q||hyp(q,actor())<5){el.hidden=true;return}let b=basis(),rel=[q.x-view.x,1.75-view.y,q.z-view.z],dot=(v)=>v[0]*rel[0]+v[1]*rel[1]+v[2]*rel[2],d=dot(b.forward);if(d<=1){el.hidden=true;return}let x=.5+.5*dot(b.right)/d*b.lens[0],y=.5-.5*dot(b.up)/d*b.lens[1];el.hidden=x<.03||x>.97||y<.06||y>.88;if(!el.hidden){el.style.left=(100*x)+'%';el.style.top=(100*y)+'%'}}
 function start(asFree,retry=false){
@@ -744,7 +750,7 @@ class StreetWorld {
 let session=null,peers=[],claimed=new Set(),peer=null,hostLink=null,authority=null,localId='',worldId='',linkSerial=0;
 let myHP=100,myLife=0,seat='',parkedId='',lastChat=0,chatOpen=false,connecting=false,mapCatalogue=null;
 const clients=new Map(),props=[],tagNodes=new Map();
-let propMeshes=[],suleMesh,frameRate=0,frames=0,perfStart=0,worldTimer=0,peerLoader=null;
+let propMeshes=[],suleMesh,shwedagonMesh,cityHallMesh,frameRate=0,frames=0,perfStart=0,worldTimer=0,peerLoader=null;
 const linkBase='yangon-rain-v2-', maxClients=20;
 function displayName(){try{return localStorage.getItem('yangon-nickname')||'Explorer'}catch{return 'Explorer'}}
 function textNotice(s){$('connectNote').textContent=s;if(mode==='play')notify(s,4)}
@@ -831,11 +837,12 @@ function createTransport(id){
 function acceptConnection(c){
   if(!authority||c.metadata?.v!==2||clients.size>=24){c.on('open',()=>{c.send({t:'reject',why:'Unavailable world or game version.'});setTimeout(()=>c.close(),250)});return}
   const world=authority;let admitted=false,messages=0,last=Date.now();
-  c.on('open',()=>{
+  const admit=()=>{
+    if(admitted)return;
     if(authority!==world||!world.join(c.peer,c.metadata?.name)){c.send({t:'reject',why:'World full · 20 / 20 players'});setTimeout(()=>c.close(),350);return}
     admitted=true;clients.set(c.peer,c);
     c.send({t:'welcome',geo:geoActive(),initial:world.snapshot(true)});
-  });
+  };if(c.open)admit();else c.once('open',admit);
   c.on('data',m=>{if(!admitted||world!==authority)return;const now=Date.now();if(now-last>=1000){last=now;messages=0}if(++messages>45)return;world.update(c.peer,m,now)});
   const gone=()=>{if(admitted&&clients.get(c.peer)===c){clients.delete(c.peer);world.leave(c.peer)}};c.on('close',gone);c.on('error',gone);
 }
@@ -847,7 +854,7 @@ async function enterWorld(kind,target=''){
     else{
       await timed(loadPeer(),14000,'Signaling library timed out. Play Offline is available.');
       if(epoch!==linkSerial)return;
-      const transport=await timed(createTransport(kind==='host'?linkBase+crypto.randomUUID():undefined),15000,'Signaling connection timed out. Try again or play offline.');
+      const transport=await timed(createTransport((kind==='host'?linkBase:'yangon-guest-')+crypto.randomUUID()),15000,'Signaling connection timed out. Try again or play offline.');
       if(epoch!==linkSerial)return;localId=transport.id;
       if(kind==='host'){worldId=localId;const geo=await prepareMap();if(epoch!==linkSerial)return;launchWorld(geo,true);localWorld();transport.on('connection',acceptConnection)}
       else{
@@ -867,7 +874,12 @@ async function enterWorld(kind,target=''){
 }
 function inviteLink(){const url=new URL(location.href);url.search='';url.hash='world='+encodeURIComponent(worldId);return url.href}
 function parseInvite(value){try{const id=new URLSearchParams(new URL(value).hash.slice(1)).get('world');return /^yangon-rain-v2-[a-f0-9-]{36}$/.test(id)?id:''}catch{return ''}}
-function inviteFriend(){if(!session?.online)return;const link=inviteLink();navigator.clipboard?.writeText(link).then(()=>notify('Invite link copied',2),()=>window.prompt('Share this link',link))||window.prompt('Share this link',link)}
+function inviteFriend(){
+ if(!session?.online)return;
+ resetKeys();panel='invite';$('modal').hidden=false;$('mtag').textContent='YANGON / FRIENDS';$('mtitle').textContent='Invite a friend';
+ $('mbody').innerHTML='<label>World link <input style="width:100%;margin-top:6px" id="shareURL" aria-label="World link" readonly></label><p>Keep this tab open while your friends play.</p><div class="row">'+button('copyInvite','Copy link',true)+button('closeInvite','Back to the street')+'</div>';
+ const field=$('shareURL');field.value=inviteLink();field.onclick=()=>field.select();$('copyInvite').onclick=()=>navigator.clipboard?.writeText(field.value).then(()=>{$('copyInvite').textContent='Copied'},()=>field.select())||field.select();$('closeInvite').onclick=closeMenu
+}
 function closeChat(){chatOpen=false;$('chatForm').hidden=true;resetKeys()}
 function openChat(){if(!session?.online||panel)return;resetKeys();chatOpen=true;$('chatForm').hidden=false;$('chatInput').focus()}
 function sandboxAct(){
