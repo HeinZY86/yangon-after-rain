@@ -1,0 +1,15 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+const html=fs.readFileSync('index.html','utf8'),rules=html.slice(html.indexOf('class StreetWorld'),html.indexOf('let session=null,peers='));
+const World=vm.runInNewContext(rules+';StreetWorld');const world=new World({x:0,z:0,a:0},[{id:'coupe',x:0,z:0,a:0}],[{id:'lamp',x:1,z:0}],[-500,-500,500,500]);
+for(let i=0;i<20;i++)assert.equal(world.join('p'+i,'P'+i),true);
+assert.equal(world.join('extra','Extra'),false);world.update('p0',{t:'seat',id:'coupe'},1000);world.update('p1',{t:'seat',id:'coupe'},1000);
+assert.equal(world.vehicles.get('coupe').driver,'p0');assert.equal(world.vehicles.get('coupe').rider,'p1');world.update('p0',{t:'move',x:12,z:0,a:1,y:0,life:0},1100);assert.equal(world.users.get('p1').x,12);
+world.leave('p0');world.leave('p1');assert.equal(world.vehicles.get('coupe').driver,'');assert.equal(world.join('new','N'),true);
+for(let i=0;i<4;i++)world.update('p2',{t:'hit',id:'p3'},2000+i*500);
+assert.equal(world.users.get('p3').hp,0);world.tick(6000);assert.equal(world.users.get('p3').life,1);
+for(let i=0;i<2;i++)world.update('p2',{t:'hit',id:'lamp'},6500+i*500);
+assert.equal(world.props.get('lamp').hp,0);world.tick(22500);assert.equal(world.props.get('lamp').hp,50);
+world.update('p2',{t:'move',x:12,z:1,a:0,y:0,life:0},23000);
+for(let i=0;i<4;i++)world.update('p2',{t:'hit',id:'coupe'},24000+i*500);
+assert.equal(world.vehicles.get('coupe').hp,0);world.tick(41000);assert.equal(world.vehicles.get('coupe').hp,100);assert.equal(world.vehicles.get('coupe').x,0);
+world.update('p2',{t:'chat',text:'hello'},42000);assert.equal(world.chat.at(-1)[2],'hello');console.log('PASS 20 admissions, 21st rejection, seat ownership, passenger movement, disconnect release, player respawn, vehicle and prop restoration, chat.');

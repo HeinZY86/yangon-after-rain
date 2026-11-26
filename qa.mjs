@@ -1,0 +1,52 @@
+import {chromium} from 'playwright';
+import {PeerServer} from 'peer';
+import http from 'node:http';
+import fs from 'node:fs/promises';
+import assert from 'node:assert/strict';
+import {createRequire} from 'node:module';
+const require=createRequire(import.meta.url);
+const html=await fs.readFile('index.html'),sdk=await fs.readFile(require.resolve('peerjs/dist/peerjs.min.js'));
+const signal=PeerServer({port:9000,path:'/qa'});
+const srv=http.createServer((req,res)=>{if(req.url==='/sdk'){res.setHeader('Content-Type','text/javascript');res.end(sdk)}else if(req.url.startsWith('/city/')){res.writeHead(404);res.end()}else if(req.url==='/peers'){res.setHeader('Content-Type','text/html');res.end('<script src="/sdk"></script>')}else{res.setHeader('Content-Type','text/html');res.end(html)}});
+await new Promise(r=>srv.listen(8382,'127.0.0.1',r));
+const browser=await chromium.launch({channel:'chrome',headless:true,args:['--enable-unsafe-swiftshader','--use-angle=swiftshader','--autoplay-policy=no-user-gesture-required','--disable-background-timer-throttling','--disable-renderer-backgrounding','--disable-backgrounding-occluded-windows']});
+const errors=[];
+const context=await browser.newContext({viewport:{width:900,height:620},permissions:['clipboard-read','clipboard-write']});
+await context.route('**/peerjs@*/dist/peerjs.min.js',route=>route.fulfill({contentType:'text/javascript',body:Buffer.concat([sdk,Buffer.from(";window.Peer=new Proxy(window.Peer,{construct(Target,[id,opts]){return new Target(id,{...opts,host:'127.0.0.1',port:9000,path:'/qa',secure:false,config:{iceServers:[]}})}});")])}));
+async function page(url){
+  const p=await context.newPage();p.on('pageerror',e=>errors.push(e.message));await p.goto(url);return p;
+}
+const wait=(p,f,arg)=>p.waitForFunction(f,arg,{timeout:40000});
+const url='http://127.0.0.1:8382/';
+try{
+  const a=await page(url);await a.getByRole('button',{name:/Enter World/}).click();
+  await wait(a,()=>document.querySelector('#presence').textContent==='1 / 20 online');await a.getByRole('button',{name:'Invite',exact:true}).click();const invite=await a.evaluate(()=>navigator.clipboard.readText());
+  assert.ok(invite.includes('#world=yangon-rain-v2-'));
+  const b=await page(invite);await wait(b,()=>document.querySelector('#presence').textContent==='2 / 20 online');
+  await wait(a,()=>document.querySelector('#presence').textContent==='2 / 20 online');console.log('PASS two actual WebRTC clients joined via invite');
+  async function resume(p){if(await p.getByRole('button',{name:'Resume',exact:true}).isVisible())await p.getByRole('button',{name:'Resume',exact:true}).click()}
+  await resume(a);await a.keyboard.press('e');await wait(a,()=>seat==='driver');await resume(b);await b.keyboard.press('e');await wait(b,()=>seat==='rider');
+  await resume(a);const before=await a.evaluate(()=>actor().z);await a.keyboard.down('w');await a.waitForTimeout(1800);await a.keyboard.up('w');
+  await wait(a,x=>actor().z>x+.2,before);await wait(b,x=>actor().z>x+.1,before);
+  const motion=await a.evaluate(()=>({speed:Math.hypot(car.vx,car.vz),position:car.z}));assert.ok(motion.speed>0);console.log('PASS shared seats, driving sync, coasting',JSON.stringify(motion));
+  await resume(a);await a.keyboard.down('Space');await wait(a,()=>Math.hypot(car.vx,car.vz)<.3);await a.keyboard.up('Space');console.log('PASS braking to rest');
+  await b.getByRole('button',{name:'Chat',exact:true}).click();await b.getByRole('textbox',{name:'Chat message'}).fill('tea shop meetup');await b.getByRole('textbox',{name:'Chat message'}).press('Enter');await a.getByText(/Explorer · tea shop meetup/).waitFor();console.log('PASS WebRTC chat');
+  await b.close();await wait(a,()=>document.querySelector('#presence').textContent==='1 / 20 online');console.log('PASS disconnect releases passenger');
+  // Connection-only guests run in one Chrome renderer. Each has its own Peer and RTCPeerConnection.
+  const q=await context.newPage();await q.goto(url+'peers');
+  const counts=await q.evaluate(async host=>{
+    const clients=[];let accepted=0,rejected=0;
+    async function join(i){return new Promise((resolve,reject)=>{
+      const timeout=setTimeout(()=>reject(Error('client '+i+' timeout')),20000);
+      const p=new Peer(undefined,{host:'127.0.0.1',port:9000,path:'/qa',secure:false,config:{iceServers:[]}});clients.push(p);
+      p.on('error',reject);p.on('open',()=>{const c=p.connect(host,{reliable:true,serialization:'json',metadata:{v:2,name:'QA '+i}});c.on('data',m=>{if(m.t==='welcome'){accepted++;clearTimeout(timeout);resolve()}else if(m.t==='reject'){rejected++;clearTimeout(timeout);resolve()}})});
+    })}
+    for(let i=1;i<=20;i++)await join(i);window.testClients=clients;return {accepted,rejected}
+  },new URLSearchParams(new URL(invite).hash.slice(1)).get('world'));
+  assert.equal(counts.accepted,19);assert.equal(counts.rejected,1);await wait(a,()=>document.querySelector('#presence').textContent==='20 / 20 online');console.log('PASS host + 19 distinct RTC guests; 21st rejected',JSON.stringify(counts));
+  await resume(a);const perf=await a.evaluate(async()=>{const start=performance.now(),heap0=performance.memory?.usedJSHeapSize;let n=0;await new Promise(done=>{function step(){n++;if(performance.now()-start>8000)done();else requestAnimationFrame(step)}requestAnimationFrame(step)});return {fps:+(n*1000/(performance.now()-start)).toFixed(1),heapStartMB:Math.round(heap0/1048576),heapEndMB:Math.round(performance.memory?.usedJSHeapSize/1048576)}});console.log('MEASURE 20 connections, CI Chrome software-rendered 900x620, 8s',JSON.stringify(perf));
+  await q.close();await wait(a,()=>document.querySelector('#presence').textContent==='1 / 20 online');
+  const mobile=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,deviceScaleFactor:1});
+  const phone=await mobile.newPage();phone.on('pageerror',e=>errors.push(e.message));await phone.goto(url);await phone.getByRole('button',{name:'Play Offline'}).tap();await phone.locator('[data-key="Space"]').tap();await wait(phone,()=>player.y>0);await phone.getByRole('button',{name:'Open district map'}).tap();await phone.getByRole('heading',{name:'Downtown street map'}).waitFor();await mobile.close();console.log('PASS emulated touch, offline mode, jump, minimap');
+  assert.deepEqual(errors,[]);console.log('PASS no uncaught JavaScript errors');
+}finally{await browser.close();srv.close();process.exitCode??=0;setTimeout(()=>process.exit(process.exitCode||0),300).unref();signal._wss?.close?.()}
